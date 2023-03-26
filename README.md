@@ -33,7 +33,7 @@ Shamelessly stolen from: https://github.com/othneildrew/Best-README-Template
   <h3 align="center">GRR Discord Playlist Bot</h3>
 
   <p align="center">
-    Gets YouTube and Spotify Links, as well as [.fmbot](https://github.com/fmbot-discord/fmbot) Messages from a Discord Channel and converts them in a Spotify Playlist.
+    Gets YouTube and Spotify Links, as well as .fmbot Messages from a Discord Channel and converts them in a Spotify Playlist.
     <br />
     <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=PLACEHOLDER">View Demo</a>
 	.
@@ -78,7 +78,7 @@ Builds a spotify Playlist based on Spotify and Youtube links posted to a specifi
 ## Options
 
 ### Config Possibilities:
-* See [example config file](https://github.com/TwosHusbandS/GRRDiscordPlaylist/blob/master/ConfigFiles/config.ini.example)
+* See [example config file](https://github.com/TwosHusbandS/GRRDiscordSpotifyPlaylist/blob/master/ConfigFiles/config.ini.example)
 * SPOTIFY_CLIENT_ID (self explainatory)
 * SPOTIFY_CLIENT_SECRET (actually not needed...I think)
 * SPOTIFY_PLAYLIST_ID (Spotify ID of the Playlist we want to Change)
@@ -151,7 +151,7 @@ As long as you dont copy this 1:1 and charge money for it, we gucci.
 
 Twitter - [@thsBizz][twitter-url]
 
-Project Link - [github.com/TwosHusbandS/GRRWeeklyThread][grrweekly-url]
+Project Link - [github.com/TwosHusbandS/GRRDiscordSpotifyPlaylist][grrdiscordspotifyplaylist-url]
 
 Discord - [@ths#0305][discord-url]
 
@@ -160,7 +160,7 @@ Discord - [@ths#0305][discord-url]
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [discord-url]: https://discordapp.com/users/612259615291342861
 [twitter-url]: https://twitter.com/thSbizz
-[grrdiscordplaylist-url]: https://github.com/TwosHusbandS/GRRDiscordPlaylist
+[grrdiscordspotifyplaylist-url]: https://github.com/TwosHusbandS/GRRDiscordSpotifyPlaylist
 [twitter-shield]: https://img.shields.io/badge/Twitter-@thSbizz-1DA1F2?style=plastic&logo=Twitter
 [discord-shield]: https://img.shields.io/badge/Discord-@thS%230305-7289DA?style=plastic&logo=Discord
 [license-shield]: https://img.shields.io/badge/License-MIT-4DC71F?style=plastic
