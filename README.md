@@ -96,6 +96,7 @@ Builds a spotify Playlist based on Spotify and Youtube links posted to a specifi
 * USER_DAILY_LIMIT (Number of Songs a User can add per Day. Only kept in RAM, resets on restart)
 * LOG_LEVEL_DISCORD (Loglevel to Discord, 1 = Info, 2 = Warnung, 3 = Error)
 * LOG_LEVEL_FILE (Loglevel to Logfile, 1 = Info, 2 = Warnung, 3 = Error)
+* SHOW_ACTIVITY_INTERNAL (True / False, logs each add/remove to an internal channel with reaction-commands)
 
 ### Discord Commands:
 * /help
@@ -125,9 +126,6 @@ Builds a spotify Playlist based on Spotify and Youtube links posted to a specifi
 
 
 -----
-
-
-
 
 
 ## Contributing

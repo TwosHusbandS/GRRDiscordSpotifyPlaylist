@@ -28,40 +28,43 @@ namespace WasIchHoerePlaylist.CommandHandling
                 {
                     parameter.Add(new KeyValuePair<string, object>(Parameter.Name, Parameter.Value));
                 }
-            }
-            catch { }
 
-            switch (command.Data.Options.First().Name)
+                switch (command.Data.Options.First().Name)
+                {
+                    case "show":
+                        HandleSettings_Show(command);
+                        break;
+                    case "re-read":
+                        HandleSettings_ReRead(command);
+                        break;
+                    case "limit":
+                        HandleSettings_Limit(command, parameter);
+                        break;
+                    case "channel":
+                        HandleSettingsCommand_Channel(command, parameter);
+                        break;
+                    case "color":
+                        HandleSettingsCommand_Color(command, parameter);
+                        break;
+                    case "log":
+                        HandleSettingsCommand_LogLevel(command, parameter);
+                        break;
+                    case "spotify-id":
+                        HandleSettingsCommand_Playlist(command, parameter);
+                        break;
+                    case "discord-guild-id":
+                        HandleSettingsCommand_DiscordGuildId(command, parameter);
+                        break;
+                    case "show-activity-internal":
+                        HandleSettingsCommand_ShowActivityInternal(command, parameter);
+                        break;
+                }
+            }
+            catch (Exception ex)
             {
-                case "show":
-                    HandleSettings_Show(command);
-                    break;
-                case "re-read":
-                    HandleSettings_ReRead(command);
-                    break;
-                case "limit":
-                    HandleSettings_Limit(command, parameter);
-                    break;
-                case "channel":
-                    HandleSettingsCommand_Channel(command, parameter);
-                    break;
-                case "color":
-                    HandleSettingsCommand_Color(command, parameter);
-                    break;
-                case "log":
-                    HandleSettingsCommand_LogLevel(command, parameter);
-                    break;
-                case "spotify-id":
-                    HandleSettingsCommand_Playlist(command, parameter);
-                    break;
-                case "discord-guild-id":
-                    HandleSettingsCommand_DiscordGuildId(command, parameter);
-                    break;
-                case "show-activity-internal":
-                    HandleSettingsCommand_ShowActivityInternal(command, parameter);
-                    break;
+                Helper.Logger.Log(ex);
+                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error processing Settings command", null, Globals.EmbedColors.ErrorEmbed));
             }
-
             return Task.CompletedTask;
 
         }

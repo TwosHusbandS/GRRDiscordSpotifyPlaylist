@@ -49,8 +49,8 @@ namespace WasIchHoerePlaylist.CommandHandling
                 case "settings":
                     HandleCommand_Settings(command, UserIsAdmin);
                     break;
-                case "dailylimitreset":
-                    HandleCommand_ResetDailyLimit(command, UserIsAdmin);
+                case "dailyuserlimit":
+                    HandleCommand_DailyUserLimit(command, UserIsAdmin);
                     break;
             }
 
@@ -222,18 +222,39 @@ namespace WasIchHoerePlaylist.CommandHandling
                     .WithType(ApplicationCommandOptionType.Integer)));
 
 
-            var CommandReset = new Discord.SlashCommandBuilder()
-            .WithName("dailylimitreset")
-            .WithDescription("Resets the daily limit of users")
+            var CommandUserlimit = new Discord.SlashCommandBuilder()
+            .WithName("dailyuserlimit")
+            .WithDescription("Everything regarding the daily limit of users")
             .AddOption(new SlashCommandOptionBuilder()
-                .WithName("all")
-                .WithDescription("Resets the daily limit for all users")
-                .WithType(ApplicationCommandOptionType.SubCommand))
-            .AddOption(new SlashCommandOptionBuilder()
-                .WithName("user")
-                .WithDescription("Resets the daily limit for a specific user")
+                .WithName("show")
+                .WithDescription("Shows amount of added songs today.")
                 .WithType(ApplicationCommandOptionType.SubCommand)
-                .AddOption("user", ApplicationCommandOptionType.User, "Name of the backup you want to create", isRequired: true));
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("all")
+                    .WithDescription("Shows amount of added songs today for all Users.")
+                    .WithType(ApplicationCommandOptionType.SubCommand))
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("user")
+                    .WithDescription("Shows amount of added songs today for one Users.")
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .AddOption("user", ApplicationCommandOptionType.User, "Name of the backup you want to create", isRequired: true)))
+            .AddOption(new SlashCommandOptionBuilder()
+                .WithName("reset")
+                .WithDescription("Resets how many Songs were added.")
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("all")
+                    .WithDescription("Resets the daily limit for all users")
+                    .WithType(ApplicationCommandOptionType.SubCommand))
+                .AddOption(new SlashCommandOptionBuilder()
+                    .WithName("user")
+                    .WithDescription("Resets the daily limit for a specific user")
+                    .WithType(ApplicationCommandOptionType.SubCommand)
+                    .AddOption("user", ApplicationCommandOptionType.User, "Name of the backup you want to create", isRequired: true)))
+             .AddOption(new SlashCommandOptionBuilder()
+                .WithName("set")
+                .WithDescription("Show the currently added Songs.")
+                .WithType(ApplicationCommandOptionType.SubCommand));
 
 
             //case "discord_playlist_id":
@@ -299,13 +320,13 @@ namespace WasIchHoerePlaylist.CommandHandling
 
 
 
-                //BuildCommand(guild, CommandHelp.Build());
-                //BuildCommand(guild, CommandStatus.Build());
-                //BuildCommand(guild, CommandPlaylist.Build());
-                //BuildCommand(guild, CommandSongs.Build());
-                //BuildCommand(guild, CommandBackups.Build());
-                //BuildCommand(guild, CommandSettings.Build());
-                //BuildCommand(guild, CommandReset);
+                BuildCommand(guild, CommandHelp);
+                BuildCommand(guild, CommandStatus);
+                BuildCommand(guild, CommandPlaylist);
+                BuildCommand(guild, CommandSongs);
+                BuildCommand(guild, CommandBackups);
+                BuildCommand(guild, CommandSettings);
+                BuildCommand(guild, CommandUserlimit);
             }
             catch (Exception ex)
             {

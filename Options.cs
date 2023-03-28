@@ -64,97 +64,97 @@ namespace WasIchHoerePlaylist
         /// </summary>
         public static void ReadFromFile()
         {
-            try
-            {
-
-                string configFileContent = Helper.FileHandling.ReadContentOfFile(Globals.Configfile);
-
-                Options.SPOTIFY_CLIENT_ID = Helper.FileHandling.GetXMLTagContent(configFileContent, "SPOTIFY_CLIENT_ID");
-                Options.SPOTIFY_CLIENT_SECRET = Helper.FileHandling.GetXMLTagContent(configFileContent, "SPOTIFY_CLIENT_SECRET");
-                Options.SPOTIFY_PLAYLIST_ID = Helper.FileHandling.GetXMLTagContent(configFileContent, "SPOTIFY_PLAYLIST_ID");
-                if (!(Int32.TryParse(Helper.FileHandling.GetXMLTagContent(configFileContent, "SPOTIFY_PLAYLIST_NUMBER_OF_SONGS"), out Options.SPOTIFY_PLAYLIST_NUMBER_OF_SONGS)))
-                {
-                    Options.SPOTIFY_PLAYLIST_NUMBER_OF_SONGS = Options.DEFAULT_SPOTIFY_PLAYLIST_NUMBER_OF_SONGS;
-                }
-
-                Options.YOUTUBE_API_KEY = Helper.FileHandling.GetXMLTagContent(configFileContent, "YOUTUBE_API_KEY");
-
-                Options.DISCORD_OAUTH_CLIENT_ID = Helper.FileHandling.GetXMLTagContent(configFileContent, "DISCORD_OAUTH_CLIENT_ID");
-                Options.DISCORD_OAUTH_CLIENT_SECRET = Helper.FileHandling.GetXMLTagContent(configFileContent, "DISCORD_OAUTH_CLIENT_SECRET");
-                Options.DISCORD_BOT_TOKEN = Helper.FileHandling.GetXMLTagContent(configFileContent, "DISCORD_BOT_TOKEN");
-                if (!(ulong.TryParse(Helper.FileHandling.GetXMLTagContent(configFileContent, "DISCORD_GUILD_ID"), out Options.DISCORD_GUILD_ID)))
-                {
-                    Options.DISCORD_GUILD_ID = DEFAULT_DISCORD_GUILD_ID;
-                }
-                if (!(ulong.TryParse(Helper.FileHandling.GetXMLTagContent(configFileContent, "DISCORD_INTERNAL_CHANNEL"), out Options.DISCORD_INTERNAL_CHANNEL)))
-                {
-                    Options.DISCORD_INTERNAL_CHANNEL = DEFAULT_DISCORD_INTERNAL_CHANNEL;
-                }
-                if (!(ulong.TryParse(Helper.FileHandling.GetXMLTagContent(configFileContent, "DISCORD_PUBLIC_CHANNEL"), out Options.DISCORD_PUBLIC_CHANNEL)))
-                {
-                    Options.DISCORD_PUBLIC_CHANNEL = DEFAULT_DISCORD_PUBLIC_CHANNEL;
-                }
-
-                if (!(TryParseColor(Helper.FileHandling.GetXMLTagContent(configFileContent, "EMBED_COLOR"), out Options.EMBED_COLOR)))
-                {
-                    Options.EMBED_COLOR = DEFAULT_EMBED_COLOR;
-                }
-                if (!(TryParseColor(Helper.FileHandling.GetXMLTagContent(configFileContent, "LOG_COLOR"), out Options.LOG_COLOR)))
-                {
-                    Options.LOG_COLOR = DEFAULT_LOG_COLOR;
-                }
-                if (!(TryParseColor(Helper.FileHandling.GetXMLTagContent(configFileContent, "ERROR_COLOR"), out Options.ERROR_COLOR)))
-                {
-                    Options.ERROR_COLOR = DEFAULT_ERROR_COLOR;
-                }
-
-                if (!(Int32.TryParse(Helper.FileHandling.GetXMLTagContent(configFileContent, "USER_DAILY_LIMIT"), out Options.USER_DAILY_LIMIT)))
-                {
-                    Options.USER_DAILY_LIMIT = Options.DEFAULT_USER_DAILY_LIMIT;
-                }
-                if (!(Int32.TryParse(Helper.FileHandling.GetXMLTagContent(configFileContent, "LOG_LEVEL_DISCORD"), out Options.LOG_LEVEL_DISCORD)))
-                {
-                    Options.LOG_LEVEL_DISCORD = Options.DEFAULT_LOG_LEVEL_DISCORD;
-                }
-                if (!(Int32.TryParse(Helper.FileHandling.GetXMLTagContent(configFileContent, "LOG_LEVEL_FILE"), out Options.LOG_LEVEL_FILE)))
-                {
-                    Options.LOG_LEVEL_FILE = Options.DEFAULT_LOG_LEVEL_FILE;
-                }
-                if (Helper.FileHandling.GetXMLTagContent(configFileContent, "SHOW_ACTIVITY_INTERNAL").ToLower() == "false")
-                {
-                    SHOW_ACTIVITY_INTERNAL = false;
-                }
-                else
-                {
-                    SHOW_ACTIVITY_INTERNAL = true;
-                }
-
-                string logstring = "---- read all settings:";
-                logstring += " Options.SPOTIFY_CLIENT_ID='" + Options.SPOTIFY_CLIENT_ID + "'";
-                logstring += " Options.SPOTIFY_CLIENT_SECRET='" + Options.SPOTIFY_CLIENT_SECRET + "'";
-                logstring += " Options.SPOTIFY_PLAYLIST_ID='" + Options.SPOTIFY_PLAYLIST_ID + "'";
-                logstring += " Options.SPOTIFY_PLAYLIST_NUMBER_OF_SONGS='" + Options.SPOTIFY_PLAYLIST_NUMBER_OF_SONGS + "'";
-                logstring += " Options.YOUTUBE_API_KEY='" + Options.YOUTUBE_API_KEY + "'";
-                logstring += " Options.DISCORD_OAUTH_CLIENT_ID='" + Options.DISCORD_OAUTH_CLIENT_ID + "'";
-                logstring += " Options.DISCORD_OAUTH_CLIENT_SECRET='" + Options.DISCORD_OAUTH_CLIENT_SECRET + "'";
-                logstring += " Options.DISCORD_BOT_TOKEN='" + Options.DISCORD_BOT_TOKEN + "'";
-                logstring += " Options.DISCORD_GUILD_ID='" + Options.DISCORD_GUILD_ID + "'";
-                logstring += " Options.DISCORD_INTERNAL_CHANNEL='" + Options.DISCORD_INTERNAL_CHANNEL + "'";
-                logstring += " Options.DISCORD_PUBLIC_CHANNEL='" + Options.DISCORD_PUBLIC_CHANNEL + "'";
-                logstring += " Options.EMBED_COLOR='" + ColorToHex(Options.EMBED_COLOR) + "'";
-                logstring += " Options.LOG_COLOR='" + ColorToHex(Options.LOG_COLOR) + "'";
-                logstring += " Options.ERROR_COLOR='" + ColorToHex(Options.ERROR_COLOR) + "'";
-                logstring += " Options.USER_DAILY_LIMIT='" + Options.USER_DAILY_LIMIT + "'";
-                logstring += " Options.LOG_LEVEL_DISCORD='" + Options.LOG_LEVEL_DISCORD + "'";
-                logstring += " Options.LOG_LEVEL_FILE='" + Options.LOG_LEVEL_FILE + "'";
-                logstring += " Options.SHOW_ACTIVITY_INTERNAL='" + Options.SHOW_ACTIVITY_INTERNAL + "'";
-
-                Helper.Logger.Log(logstring);
-            }
-            catch (Exception e)
-            {
-                Helper.Logger.Log(e);
-            }
+            //try
+            //{
+            //
+            //    string configFileContent = Helper.FileHandling.ReadContentOfFile(Globals.Configfile);
+            //
+            //    Options.SPOTIFY_CLIENT_ID = Helper.FileHandling.GetXMLTagContent(configFileContent, "SPOTIFY_CLIENT_ID");
+            //    Options.SPOTIFY_CLIENT_SECRET = Helper.FileHandling.GetXMLTagContent(configFileContent, "SPOTIFY_CLIENT_SECRET");
+            //    Options.SPOTIFY_PLAYLIST_ID = Helper.FileHandling.GetXMLTagContent(configFileContent, "SPOTIFY_PLAYLIST_ID");
+            //    if (!(Int32.TryParse(Helper.FileHandling.GetXMLTagContent(configFileContent, "SPOTIFY_PLAYLIST_NUMBER_OF_SONGS"), out Options.SPOTIFY_PLAYLIST_NUMBER_OF_SONGS)))
+            //    {
+            //        Options.SPOTIFY_PLAYLIST_NUMBER_OF_SONGS = Options.DEFAULT_SPOTIFY_PLAYLIST_NUMBER_OF_SONGS;
+            //    }
+            //
+            //    Options.YOUTUBE_API_KEY = Helper.FileHandling.GetXMLTagContent(configFileContent, "YOUTUBE_API_KEY");
+            //
+            //    Options.DISCORD_OAUTH_CLIENT_ID = Helper.FileHandling.GetXMLTagContent(configFileContent, "DISCORD_OAUTH_CLIENT_ID");
+            //    Options.DISCORD_OAUTH_CLIENT_SECRET = Helper.FileHandling.GetXMLTagContent(configFileContent, "DISCORD_OAUTH_CLIENT_SECRET");
+            //    Options.DISCORD_BOT_TOKEN = Helper.FileHandling.GetXMLTagContent(configFileContent, "DISCORD_BOT_TOKEN");
+            //    if (!(ulong.TryParse(Helper.FileHandling.GetXMLTagContent(configFileContent, "DISCORD_GUILD_ID"), out Options.DISCORD_GUILD_ID)))
+            //    {
+            //        Options.DISCORD_GUILD_ID = DEFAULT_DISCORD_GUILD_ID;
+            //    }
+            //    if (!(ulong.TryParse(Helper.FileHandling.GetXMLTagContent(configFileContent, "DISCORD_INTERNAL_CHANNEL"), out Options.DISCORD_INTERNAL_CHANNEL)))
+            //    {
+            //        Options.DISCORD_INTERNAL_CHANNEL = DEFAULT_DISCORD_INTERNAL_CHANNEL;
+            //    }
+            //    if (!(ulong.TryParse(Helper.FileHandling.GetXMLTagContent(configFileContent, "DISCORD_PUBLIC_CHANNEL"), out Options.DISCORD_PUBLIC_CHANNEL)))
+            //    {
+            //        Options.DISCORD_PUBLIC_CHANNEL = DEFAULT_DISCORD_PUBLIC_CHANNEL;
+            //    }
+            //
+            //    if (!(TryParseColor(Helper.FileHandling.GetXMLTagContent(configFileContent, "EMBED_COLOR"), out Options.EMBED_COLOR)))
+            //    {
+            //        Options.EMBED_COLOR = DEFAULT_EMBED_COLOR;
+            //    }
+            //    if (!(TryParseColor(Helper.FileHandling.GetXMLTagContent(configFileContent, "LOG_COLOR"), out Options.LOG_COLOR)))
+            //    {
+            //        Options.LOG_COLOR = DEFAULT_LOG_COLOR;
+            //    }
+            //    if (!(TryParseColor(Helper.FileHandling.GetXMLTagContent(configFileContent, "ERROR_COLOR"), out Options.ERROR_COLOR)))
+            //    {
+            //        Options.ERROR_COLOR = DEFAULT_ERROR_COLOR;
+            //    }
+            //
+            //    if (!(Int32.TryParse(Helper.FileHandling.GetXMLTagContent(configFileContent, "USER_DAILY_LIMIT"), out Options.USER_DAILY_LIMIT)))
+            //    {
+            //        Options.USER_DAILY_LIMIT = Options.DEFAULT_USER_DAILY_LIMIT;
+            //    }
+            //    if (!(Int32.TryParse(Helper.FileHandling.GetXMLTagContent(configFileContent, "LOG_LEVEL_DISCORD"), out Options.LOG_LEVEL_DISCORD)))
+            //    {
+            //        Options.LOG_LEVEL_DISCORD = Options.DEFAULT_LOG_LEVEL_DISCORD;
+            //    }
+            //    if (!(Int32.TryParse(Helper.FileHandling.GetXMLTagContent(configFileContent, "LOG_LEVEL_FILE"), out Options.LOG_LEVEL_FILE)))
+            //    {
+            //        Options.LOG_LEVEL_FILE = Options.DEFAULT_LOG_LEVEL_FILE;
+            //    }
+            //    if (Helper.FileHandling.GetXMLTagContent(configFileContent, "SHOW_ACTIVITY_INTERNAL").ToLower() == "false")
+            //    {
+            //        SHOW_ACTIVITY_INTERNAL = false;
+            //    }
+            //    else
+            //    {
+            //        SHOW_ACTIVITY_INTERNAL = true;
+            //    }
+            //
+            //    string logstring = "---- read all settings:";
+            //    logstring += " Options.SPOTIFY_CLIENT_ID='" + Options.SPOTIFY_CLIENT_ID + "'";
+            //    logstring += " Options.SPOTIFY_CLIENT_SECRET='" + Options.SPOTIFY_CLIENT_SECRET + "'";
+            //    logstring += " Options.SPOTIFY_PLAYLIST_ID='" + Options.SPOTIFY_PLAYLIST_ID + "'";
+            //    logstring += " Options.SPOTIFY_PLAYLIST_NUMBER_OF_SONGS='" + Options.SPOTIFY_PLAYLIST_NUMBER_OF_SONGS + "'";
+            //    logstring += " Options.YOUTUBE_API_KEY='" + Options.YOUTUBE_API_KEY + "'";
+            //    logstring += " Options.DISCORD_OAUTH_CLIENT_ID='" + Options.DISCORD_OAUTH_CLIENT_ID + "'";
+            //    logstring += " Options.DISCORD_OAUTH_CLIENT_SECRET='" + Options.DISCORD_OAUTH_CLIENT_SECRET + "'";
+            //    logstring += " Options.DISCORD_BOT_TOKEN='" + Options.DISCORD_BOT_TOKEN + "'";
+            //    logstring += " Options.DISCORD_GUILD_ID='" + Options.DISCORD_GUILD_ID + "'";
+            //    logstring += " Options.DISCORD_INTERNAL_CHANNEL='" + Options.DISCORD_INTERNAL_CHANNEL + "'";
+            //    logstring += " Options.DISCORD_PUBLIC_CHANNEL='" + Options.DISCORD_PUBLIC_CHANNEL + "'";
+            //    logstring += " Options.EMBED_COLOR='" + ColorToHex(Options.EMBED_COLOR) + "'";
+            //    logstring += " Options.LOG_COLOR='" + ColorToHex(Options.LOG_COLOR) + "'";
+            //    logstring += " Options.ERROR_COLOR='" + ColorToHex(Options.ERROR_COLOR) + "'";
+            //    logstring += " Options.USER_DAILY_LIMIT='" + Options.USER_DAILY_LIMIT + "'";
+            //    logstring += " Options.LOG_LEVEL_DISCORD='" + Options.LOG_LEVEL_DISCORD + "'";
+            //    logstring += " Options.LOG_LEVEL_FILE='" + Options.LOG_LEVEL_FILE + "'";
+            //    logstring += " Options.SHOW_ACTIVITY_INTERNAL='" + Options.SHOW_ACTIVITY_INTERNAL + "'";
+            //
+            //    Helper.Logger.Log(logstring);
+            //}
+            //catch (Exception e)
+            //{
+            //    Helper.Logger.Log(e);
+            //}
 
 
         }

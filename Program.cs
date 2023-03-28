@@ -14,15 +14,17 @@ using WasIchHoerePlaylist.Helper;
 
 //        private static async void SetUp()
 //        {
+
 Console.WriteLine("Hello World!");
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 Logger.Init();
 Options.Init();
 Globals.Init();
-UserSongs.Init();
+MidnightTimer.Init();
 await MyYoutube.Init();
 await MySpotify.Init();
 MyDiscord.Init();
+
 //        }
 //    }
 //}
@@ -33,7 +35,10 @@ MyDiscord.Init();
 Plans:
 
 
-- implement midnight timer for resetting limit and for automatic backup
+- implement:
+- - HandleCommand_DailyUserLimit
+- - Backups.AutoCreate
+- - Add Output for adding song when UserLimit is reached and we dont add because of that.
 
 - Check all helps, classes, etc. apart from HandleCommand_Settings
 - fill with logging and error catch

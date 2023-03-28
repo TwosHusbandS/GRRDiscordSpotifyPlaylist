@@ -186,31 +186,5 @@ namespace WasIchHoerePlaylist
             }
         }
 
-        /// <summary>
-        /// Inits the class. Basically making sure it resets at midnight.
-        /// </summary>
-        public static void Init()
-        {
-            Timer_Elapsed(null, null);
-        }
-
-        private static void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
-        {
-            //Reset();
-            //DateTime now = DateTime.Now;
-            //DateTime midnight = DateTime.Today.AddDays(1);
-            //TimeSpan ts = midnight - now;
-            //MyTimer = new System.Timers.Timer();
-            //MyTimer.Interval = ts.Milliseconds;
-            //MyTimer.Elapsed += Timer_Elapsed;
-            //MyTimer.Start();
-
-            // create backup
-            // delete 
-        }
-
-
-
-
     }
 }

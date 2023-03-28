@@ -38,6 +38,11 @@ namespace WasIchHoerePlaylist
         }
 
 
+        public static string GetUserText(SocketGuildUser SGU)
+        {
+            return SGU.Nickname + " (" + SGU.Username + ")'";
+        }
+
         /// <summary>
         /// Gets a formatted String from a Timespan
         /// </summary>

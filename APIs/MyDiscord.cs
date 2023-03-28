@@ -168,7 +168,7 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         private Task MessageReceivedAsync(SocketMessage messageParam)
         {
-            if (messageParam.Channel.Id == Options.DISCORD_INTERNAL_CHANNEL)
+            if (messageParam.Channel.Id == Options.DISCORD_PUBLIC_CHANNEL)
             {
                 Logic.ProcessPotentialSong(messageParam, prevMessageParam);
                 prevMessageParam = messageParam;

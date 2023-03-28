@@ -141,6 +141,7 @@ namespace WasIchHoerePlaylist
 
             // set UserID to 0
             ulong UserID = 0;
+
             // If curr message author is bot
             if (messageParam.Author.Id == FMBotID)
             {
@@ -183,13 +184,13 @@ namespace WasIchHoerePlaylist
 
             //messageParam.Author.Username
 
-            AddSongs(MyUris, UserID, messageParam);
+            AddSongs(MyUris, UserID, messageParam, UserID);
 
             return;
         }
 
 
-        public static async Task AddSongs(List<string> MyUris, ulong UserID, SocketMessage messageParam = null)
+        public static async Task AddSongs(List<string> MyUris, ulong UserID, SocketMessage messageParam = null, ulong pAuthor = 0)
         {
             // Clear List from empty strings and double
             List<string> MyRealUris = new List<string>();
@@ -267,8 +268,15 @@ namespace WasIchHoerePlaylist
                         if (!(messageParam == null))
                         {
                             string tmpLink = @"https://discord.com/channels/" + Options.DISCORD_GUILD_ID + "/" + messageParam.Channel.Id + "/" + messageParam.Id;
-                            string Author = messageParam.Author.Username;
-                            tmp.Add(new KeyValuePair<string, string>("User: " + Author, "Link: " + tmpLink));
+                            if (pAuthor > 0)
+                            {
+                                SocketGuildUser SGU = APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetUser(pAuthor);
+                                tmp.Add(new KeyValuePair<string, string>("User: " + Globals.GetUserText(SGU), "Link: " + tmpLink));
+                            }
+                            else
+                            {
+                                tmp.Add(new KeyValuePair<string, string>("Link:", tmpLink));
+                            }
                         }
                         tmp.Add(new KeyValuePair<string, string>(Globals.SongAddedDescription, APIs.MySpotify.GetTrackString(TResponse[i])));
                         tmp.Add(new KeyValuePair<string, string>(Globals.SongAddedTopline, TResponse[i].Uri));
