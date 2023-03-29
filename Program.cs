@@ -36,9 +36,9 @@ Plans:
 
 
 - implement:
-- - HandleCommand_DailyUserLimit
-- - Backups.AutoCreate
+- - test all Commands, parameters broken
 - - Add Output for adding song when UserLimit is reached and we dont add because of that.
+
 
 - Check all helps, classes, etc. apart from HandleCommand_Settings
 - fill with logging and error catch

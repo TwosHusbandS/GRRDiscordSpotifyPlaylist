@@ -233,6 +233,13 @@ namespace WasIchHoerePlaylist
 
         public static IEmote MyReactionEmote = (IEmote)(new Emoji("❌"));
 
+        public static void ExecuteLinuxCommand(string cmd)
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo() { FileName = "/bin/bash", Arguments = cmd, };
+            Process proc = new Process() { StartInfo = startInfo, };
+            proc.Start();
+        }
+
         public static List<string> RemoveNullEmptyWhitespaceDuplicateStringList(List<string> input)
         {
             return input.Where(s => !string.IsNullOrWhiteSpace(s)).Distinct().ToList();

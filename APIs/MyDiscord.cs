@@ -156,7 +156,6 @@ namespace WasIchHoerePlaylist.APIs
 
                 //return Task.CompletedTask;
             });
-            Console.WriteLine("i actually have no clue");
             return Task.CompletedTask;
         }
 
@@ -168,7 +167,8 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         private Task MessageReceivedAsync(SocketMessage messageParam)
         {
-            if (messageParam.Channel.Id == Options.DISCORD_PUBLIC_CHANNEL)
+            if (messageParam.Channel.Id == Options.DISCORD_PUBLIC_CHANNEL ||
+                messageParam.Channel.Id == Options.DISCORD_INTERNAL_CHANNEL)
             {
                 Logic.ProcessPotentialSong(messageParam, prevMessageParam);
                 prevMessageParam = messageParam;

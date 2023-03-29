@@ -37,7 +37,7 @@ namespace WasIchHoerePlaylist
         {
             try
             {
-                APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, "Just reset all User limits at midnight", null, Globals.EmbedColors.LoggingEmbed));
+                HitMidnight();
                 System.Timers.Timer MyOldTimer = (System.Timers.Timer)sender;
                 MyOldTimer.Stop();
                 MyOldTimer.Dispose();
@@ -50,10 +50,13 @@ namespace WasIchHoerePlaylist
             }
         }
 
-        private static void HitMidnight()
+        private static Task HitMidnight()
         {
             UserSongs.Reset();
+            APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, "Just reset all User limits at midnight.\nWill do autobackup now.", null, Globals.EmbedColors.LoggingEmbed));
             Backups.AutoCreate();
+
+            return Task.CompletedTask;
         }
     }
 }

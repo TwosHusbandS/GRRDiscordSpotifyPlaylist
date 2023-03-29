@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace WasIchHoerePlaylist
@@ -155,13 +156,58 @@ namespace WasIchHoerePlaylist
         }
 
 
-        public static void AutoCreate()
+        public static Task AutoCreate()
         {
-            // list backups
-            // match regex and add to new list or sth
-            // sort by string (which sorts by date, since we YYYYMMDD)
-            // keep the latest 5, remove the rest
-            // over(write) current day
+            try
+            {
+                string[] BackupFiles = Helper.FileHandling.GetFilesFromFolder(Globals.BackupPlaylistPath);
+                string BackupRegexPattern = @"\d{4}_\d{2}_\d{2}_autobackup";
+                //foreach (Match MySpotifyMatch in MySpotifyRegex.Matches(Content))
+                //{
+                //if (MySpotifyMatch.Success)
+
+                List<string> BackupNames = new List<string>();
+                foreach (string BackupFile in BackupFiles)
+                {
+                    string tmp2 = BackupFile.Substring(Globals.BackupPlaylistPath.Length + 1);
+                    Match m = Regex.Match(tmp2, BackupRegexPattern);
+                    if (m.Success)
+                    {
+                        BackupNames.Add(tmp2);
+                    }
+                }
+
+                BackupNames.Sort();
+                BackupNames.Reverse();
+
+                // if we have at least 4 backups
+                if (BackupNames.Count > 3)
+                {
+                    // start at index 3, so 4rth backup
+                    for (int i = 3; i < BackupNames.Count; i++)
+                    {
+                        string FileName = Helper.FileHandling.PathCombine(Globals.BackupPlaylistPath, BackupNames[i]);
+                        APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, "Deleted old backup: '" + BackupNames[i] + "' automatically.", null, Globals.EmbedColors.LoggingEmbed));
+                        Helper.FileHandling.deleteFile(FileName);
+                    }
+                }
+
+                string TodaysName = DateTime.Now.ToString("yyyy_MM_dd") + "_autobackup";
+                string TodaysFile = Helper.FileHandling.PathCombine(Globals.BackupPlaylistPath, TodaysName);
+                if (Helper.FileHandling.doesFileExist(TodaysFile))
+                {
+                    APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, "Deleted Todays backup: '" + TodaysName + "', since we will be creating a new one.", null, Globals.EmbedColors.LoggingEmbed));
+                    Helper.FileHandling.deleteFile(TodaysFile);
+                }
+                Create(null, TodaysName);
+            }
+            catch (Exception ex)
+            {
+                APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, "Autobackupcreate failed.", null, Globals.EmbedColors.ErrorEmbed));
+                Helper.Logger.Log(ex);
+            }
+
+            return Task.CompletedTask;
         }
 
 

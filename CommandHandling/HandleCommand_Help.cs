@@ -42,12 +42,18 @@ namespace WasIchHoerePlaylist.CommandHandling
             HelpOutput += "\n/settings channel {channel_type} {name}";
             HelpOutput += "\n/settings color {color_type} {name}";
             HelpOutput += "\n/settings log {log_type} {log_level}";
+            HelpOutput += "\n/settings maximum-levenshtein-distance {levenshtein-distance}";
             HelpOutput += "\n/settings spotify_playlist {keep_songs} {playlist}";
             HelpOutput += "\n/settings discord_guild_id {guild_id}";
             HelpOutput += "\n/settings show-activity-internal {true/false}";
             HelpOutput += "\n";
-            HelpOutput += "\n/dailylimitreset all";
-            HelpOutput += "\n/dailylimitreset user {user}";
+            HelpOutput += "\n/dailyuserlimit show all";
+            HelpOutput += "\n/dailyuserlimit show user {user}";
+            HelpOutput += "\n/dailyuserlimit reset all";
+            HelpOutput += "\n/dailyuserlimit reset user {user}";
+            HelpOutput += "\n";
+            HelpOutput += "\n/shutdown";
+            HelpOutput += "\n/reset";
 
             return HelpOutput;
         }

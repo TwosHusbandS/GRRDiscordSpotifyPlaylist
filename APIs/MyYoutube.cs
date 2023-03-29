@@ -51,18 +51,60 @@ namespace WasIchHoerePlaylist.APIs
         public static async Task<string> GetTitleFromVideoId(string videoId)
         {
             string rtrn = "";
+            //Console.WriteLine("A");
             try
             {
+                //Console.WriteLine("B");
                 VideosResource.ListRequest listRequest = myYoutubeService.Videos.List("snippet");
                 listRequest.Id = videoId;
                 VideoListResponse response = await listRequest.ExecuteAsync();
+                //Console.WriteLine("C");
                 if (response.Items.Count > 0)
                 {
-                    rtrn = response.Items[0].Snippet.Title;
+                    //Console.WriteLine("D");
+                    string dscrpt = response.Items[0].Snippet.Description;
+                    string[] arr = dscrpt.Split('\n');
+                    //Console.WriteLine("E");
+                    if (arr.Length >= 4)
+                    {
+                        //Console.WriteLine("F");
+                        if (arr[0].ToLower().StartsWith("provided to youtube by"))
+                        {
+                            //Console.WriteLine("G");
+
+                            if (arr[arr.Length - 1].ToLower().StartsWith("auto-generated"))
+                            {
+                                string[] tmp = arr[2].Split(" · ");
+                                if (tmp.Length >= 2)
+                                {
+                                    for (int i = 1; i <= tmp.Length - 1; i++)
+                                    {
+                                        rtrn += tmp[i];
+
+                                        if (i != tmp.Length - 1)
+                                        {
+                                            rtrn += ", ";
+                                        }
+                                    }
+                                    rtrn += " ";
+                                    rtrn += tmp[0];
+                                }
+                            }
+                        }
+                    }
+                    if (String.IsNullOrEmpty(rtrn))
+                    {
+                        rtrn = response.Items[0].Snippet.Title;
+                        rtrn.ToLower().Replace("official video", "");
+                    }
+                    //Console.WriteLine("=====");
+                    //Console.WriteLine(rtrn);
+                    //Console.WriteLine("=====");
                 }
             }
             catch (Exception ex)
             {
+                //Console.WriteLine("ZZZZ");
                 Helper.Logger.Log(ex);
             }
             return rtrn;

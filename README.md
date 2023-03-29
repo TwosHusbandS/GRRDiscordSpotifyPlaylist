@@ -117,12 +117,18 @@ Builds a spotify Playlist based on Spotify and Youtube links posted to a specifi
 * /settings channel {channel_type} {name}
 * /settings color {color_type} {name}
 * /settings log {log_type} {log_level}
+* /settings maximum-levenshtein-distance {levenshtein-distance}
 * /settings spotify_playlist_id {keep_songs} {playlist_id}
 * /settings discord_guild_id {guild_id}
 * /settings show-activity-internal {true/false}
 
-* /dailylimitreset all
-* /dailylimitreset user {user}
+* /dailyuserlimit show all
+* /dailyuserlimit show user {user}
+* /dailyuserlimit reset all
+* /dailyuserlimit reset user {user}
+
+* /shutdown";
+* /reset";
 
 
 -----

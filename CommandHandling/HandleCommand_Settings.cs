@@ -52,6 +52,9 @@ namespace WasIchHoerePlaylist.CommandHandling
                     case "spotify-id":
                         HandleSettingsCommand_Playlist(command, parameter);
                         break;
+                    case "maximum-levenshtein-distance":
+                        HandleSettingsCommand_Levenshtein(command, parameter);
+                        break;
                     case "discord-guild-id":
                         HandleSettingsCommand_DiscordGuildId(command, parameter);
                         break;
@@ -306,11 +309,37 @@ namespace WasIchHoerePlaylist.CommandHandling
         }
 
 
+
+        static Task HandleSettingsCommand_Levenshtein(SocketSlashCommand command, List<KeyValuePair<string, object>> Parameter)
+        {
+            try
+            {
+                int value = (int)Parameter[1].Value;
+                if (value > 0)
+                {
+                    Options.MAX_LEVENSHTEIN_DISTANCE = value;
+                    Options.WriteToFile();
+                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Changed 'MAX_LEVENSHTEIN_DISTANCE' to: '" + value + "'", null, Globals.EmbedColors.NormalEmbed));
+                }
+                else
+                {
+                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Levenshtein Setting (Value is 0 or less)", null, Globals.EmbedColors.ErrorEmbed));
+                }
+            }
+            catch (Exception ex)
+            {
+                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Levenshtein Setting", null, Globals.EmbedColors.ErrorEmbed));
+                Helper.Logger.Log(ex);
+            }
+            return Task.CompletedTask;
+        }
+            
+
         static Task HandleSettingsCommand_DiscordGuildId(SocketSlashCommand command, List<KeyValuePair<string, object>> Parameter)
         {
             try
             {
-                string input = Parameter[1].Value.ToString();
+                string input = Parameter[0].Value.ToString();
                 ulong GuildID = 0;
                 if (ulong.TryParse(input, out GuildID))
                 {

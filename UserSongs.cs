@@ -15,17 +15,17 @@ namespace WasIchHoerePlaylist
         /// <summary>
         /// Amount of Songs a User has added.
         /// </summary>
-        private int SongCount { get; set; }
+        public int SongCount { get; set; }
 
         /// <summary>
         /// UserID of a User.
         /// </summary>
-        private ulong UserID { get; set; }
+        public ulong UserID { get; set; }
 
         /// <summary>
         /// Static List of all Users, User get added to this on Constructor
         /// </summary>
-        private static List<UserSongs> ListOfUserSongs = new List<UserSongs>();
+        public static List<UserSongs> ListOfUserSongs = new List<UserSongs>();
 
         /// <summary>
         /// Constructor, will add to static List automatically

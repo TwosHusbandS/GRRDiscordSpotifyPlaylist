@@ -23,15 +23,11 @@ namespace WasIchHoerePlaylist.CommandHandling
 
 
                 List<KeyValuePair<string, object>> parameter = new List<KeyValuePair<string, object>>();
-                try
+                List<SocketSlashCommandDataOption> Parameters = command.Data.Options.First().Options.ToList<SocketSlashCommandDataOption>();
+                foreach (var Parameter in Parameters)
                 {
-                    List<SocketSlashCommandDataOption> Parameters = command.Data.Options.First().Options.ToList<SocketSlashCommandDataOption>();
-                    foreach (var Parameter in Parameters)
-                    {
-                        parameter.Add(new KeyValuePair<string, object>(Parameter.Name, Parameter.Value));
-                    }
+                    parameter.Add(new KeyValuePair<string, object>(Parameter.Name, Parameter.Value));
                 }
-                catch { }
 
                 switch (command.Data.Options.First().Name)
                 {
@@ -59,7 +55,38 @@ namespace WasIchHoerePlaylist.CommandHandling
         {
             try
             {
-               
+                if (Parameter[0].Key == "all")
+                {
+                    string output = "";
+
+                    if (UserSongs.ListOfUserSongs.Count > 0)
+                    {
+                        output = "{User}: {Amount_Of_Added_Songs_Today}";
+                        foreach (UserSongs US in UserSongs.ListOfUserSongs)
+                        {
+                            SocketGuildUser SGU = APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetUser(US.UserID);
+
+                            output = output + Globals.GetUserText(SGU) + ": " + US.SongCount;
+                            output += "\n\nAll users can add: '" + Options.USER_DAILY_LIMIT + "' per Day.\nAll other Users have not added a Song today.";
+                        }
+                    }
+                    else
+                    {
+                        output = "No User have added a Song today.\nThey can all add '" + Options.USER_DAILY_LIMIT + "' Songs per day.";
+                    }
+                    output += "\n\nIt is currently: " + DateTime.Now.ToString("HH:mm") + " o'clock (24hrs).";
+
+                    command.RespondAsync(embed: Globals.BuildEmbed(command, output, null, Globals.EmbedColors.NormalEmbed));
+                }
+                else if (Parameter[0].Key == "user")
+                {
+                    SocketGuildUser SGU = (SocketGuildUser)command.Data.Options.First().Options.First().Options.First().Value;
+                    int Songs = UserSongs.GetUserAdds(SGU.Id);
+                    string output = "";
+                    output += "The user: '" + Globals.GetUserText(SGU) + "'\nhas added '" + Songs + "' of their allowed: '" + Options.USER_DAILY_LIMIT + "' Songs today.";
+                    output += "\n\nIt is currently: " + DateTime.Now.ToString("HH:mm") + " o'clock (24hrs).";
+                    command.RespondAsync(embed: Globals.BuildEmbed(command, output, null, Globals.EmbedColors.NormalEmbed));
+                }
             }
             catch (Exception ex)
             {
@@ -73,7 +100,18 @@ namespace WasIchHoerePlaylist.CommandHandling
         {
             try
             {
+                if (Parameter[0].Key == "all")
+                {
+                    UserSongs.Reset();
+                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Just reset the amount of Songs for all Users", null, Globals.EmbedColors.NormalEmbed));
 
+                }
+                else if (Parameter[0].Key == "user")
+                {
+                    SocketGuildUser SGU = (SocketGuildUser)command.Data.Options.First().Options.First().Options.First().Value;
+                    UserSongs.Reset(SGU.Id);
+                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Just reset the amount of Songs that were added by:\n" + Globals.GetUserText(SGU), null, Globals.EmbedColors.NormalEmbed));
+                }
             }
             catch (Exception ex)
             {

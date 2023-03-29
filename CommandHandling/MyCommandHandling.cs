@@ -26,33 +26,44 @@ namespace WasIchHoerePlaylist.CommandHandling
                 {
                     UserIsAdmin = true;
                 }
-            }
-            catch { }
 
-            switch (command.CommandName)
-            {
-                case "help":
-                    HandleCommand_Help(command, UserIsAdmin);
-                    break;
-                case "status":
-                    HandleCommand_Status(command, UserIsAdmin);
-                    break;
-                case "playlist":
-                    HandleCommand_Playlist(command, UserIsAdmin);
-                    break;
-                case "songs":
-                    HandleCommand_Songs(command, UserIsAdmin);
-                    break;
-                case "backups":
-                    HandleCommand_Backups(command, UserIsAdmin);
-                    break;
-                case "settings":
-                    HandleCommand_Settings(command, UserIsAdmin);
-                    break;
-                case "dailyuserlimit":
-                    HandleCommand_DailyUserLimit(command, UserIsAdmin);
-                    break;
+
+                switch (command.CommandName)
+                {
+                    case "help":
+                        HandleCommand_Help(command, UserIsAdmin);
+                        break;
+                    case "status":
+                        HandleCommand_Status(command, UserIsAdmin);
+                        break;
+                    case "playlist":
+                        HandleCommand_Playlist(command, UserIsAdmin);
+                        break;
+                    case "songs":
+                        HandleCommand_Songs(command, UserIsAdmin);
+                        break;
+                    case "backups":
+                        HandleCommand_Backups(command, UserIsAdmin);
+                        break;
+                    case "settings":
+                        HandleCommand_Settings(command, UserIsAdmin);
+                        break;
+                    case "dailyuserlimit":
+                        HandleCommand_DailyUserLimit(command, UserIsAdmin);
+                        break;
+                    case "shutdown":
+                        HandleCommand_Shutdown(command, UserIsAdmin);
+                        break;
+                    case "restart":
+                        HandleCommand_Restart(command, UserIsAdmin);
+                        break;
+                }
             }
+            catch
+            {
+                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error processing slashcommand", null, Globals.EmbedColors.ErrorEmbed));
+            }
+
 
             return Task.CompletedTask;
         }
@@ -100,7 +111,8 @@ namespace WasIchHoerePlaylist.CommandHandling
                 .WithName("remove")
                 .WithDescription("Remove a song from the playlist")
                 .WithType(ApplicationCommandOptionType.SubCommand)
-                .AddOption("index", ApplicationCommandOptionType.Integer, "Number of the song you want to remove", isRequired: true));
+                .AddOption("index", ApplicationCommandOptionType.Integer, "Number of the song you want to remove", isRequired: false)
+                .AddOption("track", ApplicationCommandOptionType.String, "Spotify Track you want to remove (link, or ID)", isRequired: false));
 
             var CommandBackups = new Discord.SlashCommandBuilder()
             .WithName("backups")
@@ -205,6 +217,11 @@ namespace WasIchHoerePlaylist.CommandHandling
                     .WithType(ApplicationCommandOptionType.Integer))
                 .AddOption("playlist", ApplicationCommandOptionType.String, "New Spotify Playlist (ID or Link)", isRequired: true))
             .AddOption(new SlashCommandOptionBuilder()
+                .WithName("maximum-levenshtein-distance")
+                .WithDescription("How \"close\" the Spotify Search Response has to be.")
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .AddOption("levenshtein-distance", ApplicationCommandOptionType.Number, "Number of levenshtein-distance", isRequired: true))
+            .AddOption(new SlashCommandOptionBuilder()
                 .WithName("discord-guild-id")
                 .WithDescription("Change our Discord Guild ID.")
                 .WithType(ApplicationCommandOptionType.SubCommand)
@@ -222,43 +239,62 @@ namespace WasIchHoerePlaylist.CommandHandling
                     .WithType(ApplicationCommandOptionType.Integer)));
 
 
-            var CommandUserlimit = new Discord.SlashCommandBuilder()
+
+
+
+
+
+
+
+
+
+            var CommandDailyUserlimit = new Discord.SlashCommandBuilder()
             .WithName("dailyuserlimit")
             .WithDescription("Everything regarding the daily limit of users")
             .AddOption(new SlashCommandOptionBuilder()
                 .WithName("show")
                 .WithDescription("Shows amount of added songs today.")
-                .WithType(ApplicationCommandOptionType.SubCommand)
+                .WithType(ApplicationCommandOptionType.SubCommandGroup)
                 .AddOption(new SlashCommandOptionBuilder()
                     .WithName("all")
-                    .WithDescription("Shows amount of added songs today for all Users.")
+                    .WithDescription("Shows amount of added songs by all Users today.")
                     .WithType(ApplicationCommandOptionType.SubCommand))
                 .AddOption(new SlashCommandOptionBuilder()
                     .WithName("user")
-                    .WithDescription("Shows amount of added songs today for one Users.")
+                    .WithDescription("Shows amount of added songs by a specific Users today.")
                     .WithType(ApplicationCommandOptionType.SubCommand)
-                    .AddOption("user", ApplicationCommandOptionType.User, "Name of the backup you want to create", isRequired: true)))
+                    .AddOption("user", ApplicationCommandOptionType.User, "Name of the user", isRequired: true)
+                    ))
             .AddOption(new SlashCommandOptionBuilder()
                 .WithName("reset")
-                .WithDescription("Resets how many Songs were added.")
-                .WithType(ApplicationCommandOptionType.SubCommand)
+                .WithDescription("Resets amount of added songs today.")
+                .WithType(ApplicationCommandOptionType.SubCommandGroup)
                 .AddOption(new SlashCommandOptionBuilder()
                     .WithName("all")
-                    .WithDescription("Resets the daily limit for all users")
+                    .WithDescription("Resets amount of added songs by all Users today.")
                     .WithType(ApplicationCommandOptionType.SubCommand))
                 .AddOption(new SlashCommandOptionBuilder()
                     .WithName("user")
-                    .WithDescription("Resets the daily limit for a specific user")
+                    .WithDescription("Resets amount of added songs by a specific Users today.")
                     .WithType(ApplicationCommandOptionType.SubCommand)
-                    .AddOption("user", ApplicationCommandOptionType.User, "Name of the backup you want to create", isRequired: true)))
+                    .AddOption("user", ApplicationCommandOptionType.User, "Name of the user", isRequired: true)
+                    ))
              .AddOption(new SlashCommandOptionBuilder()
                 .WithName("set")
-                .WithDescription("Show the currently added Songs.")
+                .WithDescription("Set how many songs a user can add per Day.")
                 .WithType(ApplicationCommandOptionType.SubCommand));
 
 
-            //case "discord_playlist_id":
-            // "discord_guild_id":
+
+            var CommandRestart = new Discord.SlashCommandBuilder()
+                .WithName("restart")
+                .WithDescription("(Tries) restarting the bot.");
+
+            var CommandShutdown = new Discord.SlashCommandBuilder()
+                .WithName("shutdown")
+                .WithDescription("Shutdowns the bot.");
+
+
             /*
 
             help
@@ -303,30 +339,25 @@ namespace WasIchHoerePlaylist.CommandHandling
             try
             {
                 //var shit = await guild.GetApplicationCommandsAsync();
-                //Console.WriteLine();
-                //Console.WriteLine("Removing all existing Commands...");
                 //foreach (var shi in shit)
                 //{
-                //    //if (shi.Name == "settings")
-                //    //{
                 //    Console.WriteLine("---- Removing existing Commands: '" + shi.Name + "'..." );
                 //    await shi.DeleteAsync();
                 //    Console.WriteLine("---- DONE Removing existing Commands: '" + shi.Name + "'...");
-                //
-                //
-                //    //}
                 //}
                 //Console.WriteLine("DONE Removing all existing Commands");
 
 
 
-                BuildCommand(guild, CommandHelp);
-                BuildCommand(guild, CommandStatus);
-                BuildCommand(guild, CommandPlaylist);
-                BuildCommand(guild, CommandSongs);
-                BuildCommand(guild, CommandBackups);
-                BuildCommand(guild, CommandSettings);
-                BuildCommand(guild, CommandUserlimit);
+                //await BuildCommand(guild, CommandHelp);
+                //await BuildCommand(guild, CommandStatus);
+                //await BuildCommand(guild, CommandPlaylist);
+                //await BuildCommand(guild, CommandSongs);
+                //await BuildCommand(guild, CommandBackups);
+                //await BuildCommand(guild, CommandSettings);
+                //await BuildCommand(guild, CommandDailyUserlimit);
+                //await BuildCommand(guild, CommandRestart);
+                //await BuildCommand(guild, CommandShutdown);
             }
             catch (Exception ex)
             {
@@ -342,7 +373,8 @@ namespace WasIchHoerePlaylist.CommandHandling
             {
                 Console.WriteLine("Creating Command: '" + SCB.Name + "'...");
                 ApplicationCommandProperties ACP = SCB.Build();
-                await SG.CreateApplicationCommandAsync(ACP);
+                //await SG.CreateApplicationCommandAsync(ACP);
+                await APIs.MyDiscord.MyDiscordClient.CreateGlobalApplicationCommandAsync(ACP);
                 Console.WriteLine("Creating Command: '" + SCB.Name + "' DONE");
             }
             catch (Exception e)

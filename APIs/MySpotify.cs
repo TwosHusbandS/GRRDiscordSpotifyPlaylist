@@ -378,18 +378,23 @@ namespace WasIchHoerePlaylist.APIs
                 }
 
                 string MyClosestLink = "";
-                int bestComparison = 9999;
+                //int bestComparison = 9999;
                 for (int i = 0; i <= mySpotifySearchReturnsTitles.Count - 1; i++)
                 {
                     string ComparisonString = mySpotifySearchReturnsArtists[i] + " " + mySpotifySearchReturnsTitles[i];
                     int currComparison = Helper.FileHandling.getLevenshteinDistance(ComparisonString, SearchString);
                     //Console.WriteLine("String: '{0}', SearchResult: '{1}', LevenshteinDistance: '{2}'", SearchString, ComparisonString, currComparison);
 
-                    if (currComparison < bestComparison)
+                    if (currComparison <= Options.MAX_LEVENSHTEIN_DISTANCE)
                     {
                         MyClosestLink = mySpotifySearchReturnsUri[i];
-                        bestComparison = currComparison;
+                        break;
                     }
+                    //if (currComparison < bestComparison)
+                    //{
+                    //    MyClosestLink = mySpotifySearchReturnsUri[i];
+                    //    bestComparison = currComparison;
+                    //}
                 }
 
                 if (!String.IsNullOrWhiteSpace(MyClosestLink))
