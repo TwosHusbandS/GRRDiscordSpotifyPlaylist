@@ -152,7 +152,7 @@ namespace WasIchHoerePlaylist.APIs
             {
                 StringBuilder sb = new StringBuilder($"{MyDiscordClient.CurrentUser} is connected!");
                 Helper.Logger.Log(sb.ToString(), 1);
-                await CommandHandling.MyCommandHandling.BuildCommands(APIs.MyDiscord.MyDiscordClient);
+                //await CommandHandling.MyCommandHandling.BuildCommands(APIs.MyDiscord.MyDiscordClient);
 
                 //return Task.CompletedTask;
             });
@@ -167,20 +167,26 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         private Task MessageReceivedAsync(SocketMessage messageParam)
         {
-            if (messageParam.Channel.Id == Options.DISCORD_PUBLIC_CHANNEL ||
-                messageParam.Channel.Id == Options.DISCORD_INTERNAL_CHANNEL)
+            _ = Task.Run(async () =>
             {
-                Logic.ProcessPotentialSong(messageParam, prevMessageParam);
-                prevMessageParam = messageParam;
-            }
-
+                if (messageParam.Channel.Id == Options.DISCORD_PUBLIC_CHANNEL ||
+                messageParam.Channel.Id == Options.DISCORD_INTERNAL_CHANNEL)
+                {
+                    Logic.ProcessPotentialSong(messageParam, prevMessageParam);
+                    prevMessageParam = messageParam;
+                }
+            });
             return Task.CompletedTask;
         }
 
 
         private Task MyDiscordClient_MessageUpdated(Cacheable<IMessage, ulong> arg1, SocketMessage arg2, ISocketMessageChannel arg3)
         {
-            MessageReceivedAsync(arg2);
+            _ = Task.Run(async () =>
+            {
+                MessageReceivedAsync(arg2);
+                return Task.CompletedTask;
+            });
             return Task.CompletedTask;
         }
 
@@ -192,49 +198,53 @@ namespace WasIchHoerePlaylist.APIs
         /// <param name="arg2"></param>
         /// <param name="arg3"></param>
         /// <returns></returns>
-        private async Task ReactionAdded(Cacheable<IUserMessage, ulong> arg1, Cacheable<IMessageChannel, ulong> arg2, SocketReaction arg3)
+        private Task ReactionAdded(Cacheable<IUserMessage, ulong> arg1, Cacheable<IMessageChannel, ulong> arg2, SocketReaction arg3)
         {
-            try
+            _ = Task.Run(async () =>
             {
-                if ((arg3.Channel.Id == Options.DISCORD_INTERNAL_CHANNEL) &&
-                    (arg3.UserId != Globals.OurBotID))
+                try
                 {
-                    Console.WriteLine("User: '{0}' reacted to message: '{1}' with reaction: '{2}'", arg3.User, arg3.MessageId, arg3.Emote.Name);
-
-                    if (arg3.Emote.Equals(Globals.MyReactionEmote))
+                    if ((arg3.Channel.Id == Options.DISCORD_INTERNAL_CHANNEL) &&
+                        (arg3.UserId != Globals.OurBotID))
                     {
-                        IUserMessage asdf = await arg1.DownloadAsync();
+                        Console.WriteLine("User: '{0}' reacted to message: '{1}' with reaction: '{2}'", arg3.User, arg3.MessageId, arg3.Emote.Name);
 
-                        string SongName = "";
-                        string SongUri = "";
-                        // see if we can yeet song
-                        foreach (Embed tmpEmbed in asdf.Embeds)
+                        if (arg3.Emote.Equals(Globals.MyReactionEmote))
                         {
-                            foreach (var sth in tmpEmbed.Fields)
+                            IUserMessage asdf = await arg1.DownloadAsync();
+
+                            string SongName = "";
+                            string SongUri = "";
+                            // see if we can yeet song
+                            foreach (Embed tmpEmbed in asdf.Embeds)
                             {
-                                if (sth.Name == Globals.SongAddedTopline)
+                                foreach (var sth in tmpEmbed.Fields)
                                 {
-                                    SongUri = sth.Value;
-                                }
-                                else if (sth.Name == Globals.SongAddedDescription)
-                                {
-                                    SongName = sth.Value;
+                                    if (sth.Name == Globals.SongAddedTopline)
+                                    {
+                                        SongUri = sth.Value;
+                                    }
+                                    else if (sth.Name == Globals.SongAddedDescription)
+                                    {
+                                        SongName = sth.Value;
+                                    }
                                 }
                             }
+
+                            List<KeyValuePair<string, string>> SongList = new List<KeyValuePair<string, string>>();
+                            SongList.Add(new KeyValuePair<string, string>("Removed following Song from the Playlist, as per Reaction-Request:", SongName));
+
+                            APIs.MySpotify.RemoveFromPlaylist(SongUri);
+                            SendMessage(Globals.BuildEmbed(null, null, SongList, Globals.EmbedColors.LoggingEmbed));
                         }
-
-                        List<KeyValuePair<string, string>> SongList = new List<KeyValuePair<string, string>>();
-                        SongList.Add(new KeyValuePair<string, string>("Removed following Song from the Playlist, as per Reaction-Request:", SongName));
-
-                        APIs.MySpotify.RemoveFromPlaylist(SongUri);
-                        SendMessage(Globals.BuildEmbed(null, null, SongList, Globals.EmbedColors.LoggingEmbed));
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                Helper.Logger.Log(ex);
-            }
+                catch (Exception ex)
+                {
+                    Helper.Logger.Log(ex);
+                }
+            });
+            return Task.CompletedTask;
         }
 
 
@@ -245,7 +255,10 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         private Task SlashCommandExecuted(SocketSlashCommand arg)
         {
-            CommandHandling.MyCommandHandling.SlashCommandHandler(arg);
+            _ = Task.Run(async () =>
+            {
+                CommandHandling.MyCommandHandling.SlashCommandHandler(arg);
+            });
             return Task.CompletedTask;
         }
     }

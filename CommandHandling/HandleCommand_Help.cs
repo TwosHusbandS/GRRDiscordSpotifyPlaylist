@@ -29,8 +29,9 @@ namespace WasIchHoerePlaylist.CommandHandling
             HelpOutput += "\n/playlist";
             HelpOutput += "\n";
             HelpOutput += "\n/songs list";
-            HelpOutput += "\n/songs add {link}";
-            HelpOutput += "\n/songs remove {index}";
+            HelpOutput += "\n/songs add {track}";
+            HelpOutput += "\n/songs remove-at-index {index}";
+            HelpOutput += "\n/songs remove-song {track}";
             HelpOutput += "\n";
             HelpOutput += "\n/backups list";
             HelpOutput += "\n/backups create {name}";

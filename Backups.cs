@@ -55,7 +55,7 @@ namespace WasIchHoerePlaylist
             try
             {
                 string BackupName = "";
-                if (GetBackupName(out BackupName, command, pBackupName))
+                if (!GetBackupName(out BackupName, command, pBackupName))
                 {
                     Output(Globals.BuildEmbed(command, "Error creating Backup. Name is null or empty.", null, Globals.EmbedColors.ErrorEmbed), command);
                     return;
@@ -92,7 +92,7 @@ namespace WasIchHoerePlaylist
             try
             {
                 string BackupName = "";
-                if (GetBackupName(out BackupName, command, pBackupName))
+                if (!GetBackupName(out BackupName, command, pBackupName))
                 {
                     Output(Globals.BuildEmbed(command, "Error applying Backup. Name is null or empty.", null, Globals.EmbedColors.ErrorEmbed), command);
                     return;
@@ -130,7 +130,7 @@ namespace WasIchHoerePlaylist
             try
             {
                 string BackupName = "";
-                if (GetBackupName(out BackupName, command, pBackupName))
+                if (!GetBackupName(out BackupName, command, pBackupName))
                 {
                     Output(Globals.BuildEmbed(command, "Error deleting Backup. Name is null or empty.", null, Globals.EmbedColors.ErrorEmbed), command);
                     return Task.CompletedTask;
@@ -247,7 +247,7 @@ namespace WasIchHoerePlaylist
 
                 if (command != null)
                 {
-                    tmp = (command.Data.Options.First().Options.First().Value).ToString();
+                    tmp = command.Data.Options.ElementAt(0).Options.ElementAt(0).Value.ToString();
                 }
             }
             catch (Exception ex)

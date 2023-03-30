@@ -104,8 +104,9 @@ Builds a spotify Playlist based on Spotify and Youtube links posted to a specifi
 * /playlist
 
 * /songs list
-* /songs add {link}
-* /songs remove {index}
+* /songs add {track}
+* /songs remove-at-index {index}
+* /songs remove-song {track}
 
 * /backups list
 * /backups create {name}

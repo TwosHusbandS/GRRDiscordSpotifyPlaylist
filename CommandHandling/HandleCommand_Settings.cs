@@ -309,7 +309,6 @@ namespace WasIchHoerePlaylist.CommandHandling
         }
 
 
-
         static Task HandleSettingsCommand_Levenshtein(SocketSlashCommand command, List<KeyValuePair<string, object>> Parameter)
         {
             try

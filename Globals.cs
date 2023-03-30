@@ -40,7 +40,7 @@ namespace WasIchHoerePlaylist
 
         public static string GetUserText(SocketGuildUser SGU)
         {
-            return SGU.Nickname + " (" + SGU.Username + ")'";
+            return SGU.Nickname + " [" + SGU.Username + "#" + SGU.Discriminator + "]" ;
         }
 
         /// <summary>
@@ -238,6 +238,24 @@ namespace WasIchHoerePlaylist
             ProcessStartInfo startInfo = new ProcessStartInfo() { FileName = "/bin/bash", Arguments = cmd, };
             Process proc = new Process() { StartInfo = startInfo, };
             proc.Start();
+        }
+
+
+        public static List<string> RemoveEmptyAndDoubles(List<string> MyInput)
+        {
+            // Clear List from empty strings and double
+            List<string> MyOutput = new List<string>();
+            foreach (string MyString in MyInput)
+            {
+                if (!String.IsNullOrEmpty(MyString))
+                {
+                    if (!MyOutput.Contains(MyString))
+                    {
+                        MyOutput.Add(MyString);
+                    }
+                }
+            }
+            return MyOutput;
         }
 
         public static List<string> RemoveNullEmptyWhitespaceDuplicateStringList(List<string> input)

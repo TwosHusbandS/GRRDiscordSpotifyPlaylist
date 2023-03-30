@@ -108,13 +108,18 @@ namespace WasIchHoerePlaylist.CommandHandling
                 .WithType(ApplicationCommandOptionType.SubCommand)
                 .AddOption("link", ApplicationCommandOptionType.String, "link to the song you want to add", isRequired: true))
             .AddOption(new SlashCommandOptionBuilder()
-                .WithName("remove")
+                .WithName("remove-at-index")
+                .WithDescription("Remove a song from an index from the playlist")
+                .WithType(ApplicationCommandOptionType.SubCommand)
+                .AddOption("index", ApplicationCommandOptionType.Integer, "Number of the song you want to remove", isRequired: true))
+            .AddOption(new SlashCommandOptionBuilder()
+                .WithName("remove-song")
                 .WithDescription("Remove a song from the playlist")
                 .WithType(ApplicationCommandOptionType.SubCommand)
-                .AddOption("index", ApplicationCommandOptionType.Integer, "Number of the song you want to remove", isRequired: false)
-                .AddOption("track", ApplicationCommandOptionType.String, "Spotify Track you want to remove (link, or ID)", isRequired: false));
+                .AddOption("track", ApplicationCommandOptionType.String, "Spotify Track you want to remove (link, or ID)", isRequired: true));     
+            
 
-            var CommandBackups = new Discord.SlashCommandBuilder()
+                var CommandBackups = new Discord.SlashCommandBuilder()
             .WithName("backups")
             .WithDescription("Backups of the songs of the playlist.")
             .AddOption(new SlashCommandOptionBuilder()
@@ -338,26 +343,43 @@ namespace WasIchHoerePlaylist.CommandHandling
 
             try
             {
-                //var shit = await guild.GetApplicationCommandsAsync();
-                //foreach (var shi in shit)
-                //{
-                //    Console.WriteLine("---- Removing existing Commands: '" + shi.Name + "'..." );
-                //    await shi.DeleteAsync();
-                //    Console.WriteLine("---- DONE Removing existing Commands: '" + shi.Name + "'...");
-                //}
+                var shit = await guild.GetApplicationCommandsAsync();
+                var shit2 = await APIs.MyDiscord.MyDiscordClient.GetGlobalApplicationCommandsAsync();
+
+                Console.WriteLine("Removing ALL GUILD commands...");
+                foreach (var shi in shit)
+                {
+                    Console.WriteLine("---- Removing existing GUILD Commands: '" + shi.Name + "'..." );
+                    await shi.DeleteAsync();
+                    Console.WriteLine("---- DONE Removing existing GUILD Commands: '" + shi.Name + "'...");
+                }
+                Console.WriteLine("Removing ALL GUILD commands...DONE");
+
+                Console.WriteLine("Removing ALL commands...");
+
+                foreach (var shi2 in shit2)
+                {
+                    Console.WriteLine("---- Removing existing Commands: '" + shi2.Name + "'...");
+                    await shi2.DeleteAsync();
+                    Console.WriteLine("---- DONE Removing existing Commands: '" + shi2.Name + "'...");
+                }
+                Console.WriteLine("Removing ALL commands...DONE");
+
                 //Console.WriteLine("DONE Removing all existing Commands");
 
 
+                Console.WriteLine("Building ALL commands...");
+                await BuildCommand(guild, CommandHelp);
+                await BuildCommand(guild, CommandStatus);
+                await BuildCommand(guild, CommandPlaylist);
+                await BuildCommand(guild, CommandSongs);
+                await BuildCommand(guild, CommandBackups);
+                await BuildCommand(guild, CommandSettings);
+                await BuildCommand(guild, CommandDailyUserlimit);
+                await BuildCommand(guild, CommandRestart);
+                await BuildCommand(guild, CommandShutdown);
+                Console.WriteLine("Building ALL commands...DONE");
 
-                //await BuildCommand(guild, CommandHelp);
-                //await BuildCommand(guild, CommandStatus);
-                //await BuildCommand(guild, CommandPlaylist);
-                //await BuildCommand(guild, CommandSongs);
-                //await BuildCommand(guild, CommandBackups);
-                //await BuildCommand(guild, CommandSettings);
-                //await BuildCommand(guild, CommandDailyUserlimit);
-                //await BuildCommand(guild, CommandRestart);
-                //await BuildCommand(guild, CommandShutdown);
             }
             catch (Exception ex)
             {
@@ -365,6 +387,31 @@ namespace WasIchHoerePlaylist.CommandHandling
             }
 
             return;
+        }
+
+
+        public static Task PrintOptions(SocketSlashCommand command)
+        {
+
+            for (int i = 0; i <= command.Data.Options.Count - 1; i++)
+            {
+                SocketSlashCommandDataOption SSCDO = command.Data.Options.ElementAt(i);
+                PrintOptions(SSCDO, i, "");
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public static Task PrintOptions(SocketSlashCommandDataOption SSCDO, int inde = 0, string Indent = "")
+        {
+            Console.WriteLine("{0} i={1} SSCDO.Name: '{2}'", Indent, inde, SSCDO.Name);
+            Console.WriteLine("{0} i={1} SSCDO.Value: '{2}'", Indent, inde, SSCDO.Value);
+            for (int i = 0; i <= SSCDO.Options.Count - 1; i++)
+            {
+                SocketSlashCommandDataOption SSCDO_ = SSCDO.Options.ElementAt(i);
+                PrintOptions(SSCDO_, i, Indent + "    ");
+            }
+            return Task.CompletedTask;
         }
 
         public static async Task BuildCommand(SocketGuild SG, SlashCommandBuilder SCB)

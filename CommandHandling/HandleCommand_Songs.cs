@@ -25,12 +25,16 @@ namespace WasIchHoerePlaylist.CommandHandling
                 case "add":
                     {
                         HandleCommand_Songs_Add(command, UserIsAdmin);
-
                     }
                     break;
-                case "remove":
+                case "remove-at-index":
                     {
-                        HandleCommand_Songs_Remove(command, UserIsAdmin);
+                        HandleCommand_Songs_RemoveAtIndex(command, UserIsAdmin);
+                    }
+                    break;
+                case "remove-song":
+                    {
+                        HandleCommand_Songs_RemoveSong(command, UserIsAdmin);
                     }
                     break;
             }
@@ -122,14 +126,27 @@ namespace WasIchHoerePlaylist.CommandHandling
                 return;
             }
 
+
             try
             {
                 string rtrn = command.Data.Options.First().Options.First().Value.ToString();
                 List<string> Uris = await Logic.GetFromContent(rtrn);
+                Uris = Globals.RemoveEmptyAndDoubles(Uris);
                 if (Uris.Count > 0)
                 {
+                    List<FullTrack> FullTracks = await APIs.MySpotify.GetTracksReponse(Uris);
+                    List<KeyValuePair<string, string>> Output = new List<KeyValuePair<string, string>>();
+                    string topline = "Tried adding " + FullTracks.Count + " song(s):";
+                    string description = "";
+                    for (int i = 0; i <= FullTracks.Count - 1; i++)
+                    {
+                        description += APIs.MySpotify.GetTrackString(FullTracks[i]);
+                        description += '\n';
+                    }
+                    description = description.TrimEnd('\n');
+                    Output.Add(new KeyValuePair<string, string>(topline, description));
                     Logic.AddSongs(Uris, 0);
-                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Tried adding " + Uris.Count + " song(s)", null, Globals.EmbedColors.NormalEmbed));
+                    command.RespondAsync(embed: Globals.BuildEmbed(command, null, Output, Globals.EmbedColors.NormalEmbed));
                 }
                 else
                 {
@@ -143,7 +160,7 @@ namespace WasIchHoerePlaylist.CommandHandling
             }
         }
 
-        static async Task HandleCommand_Songs_Remove(SocketSlashCommand command, bool UserIsAdmin)
+        static async Task HandleCommand_Songs_RemoveAtIndex(SocketSlashCommand command, bool UserIsAdmin)
         {
             if (!UserIsAdmin)
             {
@@ -164,17 +181,63 @@ namespace WasIchHoerePlaylist.CommandHandling
                     {
                         string uri = FullTracks[Index].Uri;
                         APIs.MySpotify.RemoveFromPlaylist(uri);
-                        command.RespondAsync(embed: Globals.BuildEmbed(command, "Tried removing that song.", null, Globals.EmbedColors.ErrorEmbed));
+                        command.RespondAsync(embed: Globals.BuildEmbed(command, "Tried removing song at index: " + rtrn, null, Globals.EmbedColors.ErrorEmbed));
                     }
                 }
             }
             catch (Exception ex)
             {
-                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error Removing Song", null, Globals.EmbedColors.ErrorEmbed));
+                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error Removing SongAtIndex", null, Globals.EmbedColors.ErrorEmbed));
                 Helper.Logger.Log(ex);
             }
         }
 
+
+
+
+
+
+
+        static async Task HandleCommand_Songs_RemoveSong(SocketSlashCommand command, bool UserIsAdmin)
+        {
+            if (!UserIsAdmin)
+            {
+                MissingPermissions(command);
+                return;
+            }
+
+            try
+            {
+                string rtrn = command.Data.Options.First().Options.First().Value.ToString();
+                List<string> Uris = await Logic.GetFromContent(rtrn);
+                Uris = Globals.RemoveEmptyAndDoubles(Uris);
+                if (Uris.Count > 0)
+                {
+                    List<FullTrack> FullTracks = await APIs.MySpotify.GetTracksReponse(Uris);
+                    List<KeyValuePair<string,string>> Output = new List<KeyValuePair<string,string>>();
+                    string topline = "Tried removing " + FullTracks.Count + " song(s):";
+                    string description = "";
+                    for (int i = 0; i <= FullTracks.Count -1; i++)
+                    {
+                        description += APIs.MySpotify.GetTrackString(FullTracks[i]);
+                        description += '\n';
+                    }
+                    description = description.TrimEnd('\n');
+                    Output.Add(new KeyValuePair<string, string>(topline, description ));
+                    APIs.MySpotify.RemoveFromPlaylist(Uris);
+                    command.RespondAsync(embed: Globals.BuildEmbed(command, null, Output, Globals.EmbedColors.NormalEmbed));
+                }
+                else
+                {
+                    command.RespondAsync(embed: Globals.BuildEmbed(command, "No songs found", null, Globals.EmbedColors.ErrorEmbed));
+                }
+            }
+            catch (Exception ex)
+            {
+                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error removing Songs", null, Globals.EmbedColors.ErrorEmbed));
+                Helper.Logger.Log(ex);
+            }
+        }
 
 
     }

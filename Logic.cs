@@ -56,6 +56,7 @@ namespace WasIchHoerePlaylist
             string spotifyRegex = @"http[s]?:\/\/open.spotify\.com\/(embed\/)?(track|album)\/([a-zA-Z0-9]{6,})";
             string youtubeRegex = @"http[s]?:\/\/(www.)?(m.)?((youtube(-nocookie)?\.com\/((watch\?v=)|(v\/)|(embed\/)))|(youtu.be\/))[a-zA-Z0-9\-_]{5,}";
 
+            string spotifyUriIDRegex = @"(spotify:track:)([a-zA-Z0-9]{10,30})";
 
             // https://regex101.com/r/PAuTVh/1
 
@@ -70,6 +71,19 @@ namespace WasIchHoerePlaylist
                     Content = Content + " " + tmp;
                 }
             }
+
+            Regex MySpotifyUriIDRegex = new Regex(spotifyUriIDRegex);
+            foreach (Match MySpotifyUriIDMatch in MySpotifyUriIDRegex.Matches(Content))
+            {
+                if (MySpotifyUriIDMatch.Success)
+                {
+                    if (MySpotifyUriIDMatch.Groups.Count >= 3)
+                    {
+                        MyUris.Add(APIs.MySpotify.GetTrackUriFromId(MySpotifyUriIDMatch.Groups[2].ToString()));
+                    }
+                }
+            }
+
 
             Regex MySpotifyRegex = new Regex(spotifyRegex);
             foreach (Match MySpotifyMatch in MySpotifyRegex.Matches(Content))
@@ -184,27 +198,15 @@ namespace WasIchHoerePlaylist
 
             //messageParam.Author.Username
 
-            AddSongs(MyUris, UserID, messageParam, UserID);
+            AddSongs(MyUris, UserID, messageParam);
 
             return;
         }
 
 
-        public static async Task AddSongs(List<string> MyUris, ulong UserID, SocketMessage messageParam = null, ulong pAuthor = 0)
+        public static async Task AddSongs(List<string> MyUris, ulong UserID, SocketMessage messageParam = null)
         {
-            // Clear List from empty strings and double
-            List<string> MyRealUris = new List<string>();
-            foreach (string MyUri in MyUris)
-            {
-                if (!String.IsNullOrEmpty(MyUri))
-                {
-                    if (!MyRealUris.Contains(MyUri))
-                    {
-                        MyRealUris.Add(MyUri);
-                    }
-                }
-            }
-
+            List<string> MyRealUris = Globals.RemoveEmptyAndDoubles(MyUris);
 
 
             List<FullTrack> FullTracks = await APIs.MySpotify.GetAllPlaylistFullTracks();
@@ -268,9 +270,9 @@ namespace WasIchHoerePlaylist
                         if (!(messageParam == null))
                         {
                             string tmpLink = @"https://discord.com/channels/" + Options.DISCORD_GUILD_ID + "/" + messageParam.Channel.Id + "/" + messageParam.Id;
-                            if (pAuthor > 0)
+                            if (UserID > 0)
                             {
-                                SocketGuildUser SGU = APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetUser(pAuthor);
+                                SocketGuildUser SGU = APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetUser(UserID);
                                 tmp.Add(new KeyValuePair<string, string>("User: " + Globals.GetUserText(SGU), "Link: " + tmpLink));
                             }
                             else
@@ -283,7 +285,6 @@ namespace WasIchHoerePlaylist
 
                         Discord.Rest.RestUserMessage RUM = await APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, null, tmp, Globals.EmbedColors.LoggingEmbed));
                         await RUM.AddReactionAsync(Globals.MyReactionEmote);
-
                     }
 
                     if (removedSongs.Count > 0)
@@ -298,7 +299,6 @@ namespace WasIchHoerePlaylist
                                 Output += "\n";
                             }
                         }
-
 
                         tmp2.Add(new KeyValuePair<string, string>("In Order to keep the Song limit we had to remove the following Songs:", Output));
                         APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, null, tmp2, Globals.EmbedColors.LoggingEmbed));
