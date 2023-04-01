@@ -291,6 +291,11 @@ namespace WasIchHoerePlaylist.APIs
             List<FullTrack> FullTracks = new List<FullTrack>();
             try
             {
+                if (Uris.Count == 0)
+                {
+                    return FullTracks;
+                }
+
                 List<string> IDs = new List<string>();
                 for (int i = 0; i <= Uris.Count - 1; i++)
                 {
@@ -364,30 +369,28 @@ namespace WasIchHoerePlaylist.APIs
                 ISearchClient MySearchClient = MySpotifyClient.Search;
                 SearchResponse MySearchResponse = await MySearchClient.Item(MySearchRequest);
 
-                List<string> mySpotifySearchReturnsTitles = new List<string>();
-                List<string> mySpotifySearchReturnsArtists = new List<string>();
-                List<string> mySpotifySearchReturnsUri = new List<string>();
+                List<FullTrack> mySpotifySearchReturns = new List<FullTrack>();
                 foreach (var tmp in MySearchResponse.Tracks.Items)
                 {
                     if (tmp is FullTrack Track)
                     {
-                        mySpotifySearchReturnsTitles.Add(tmp.Name);
-                        mySpotifySearchReturnsArtists.Add(GetArtistString(tmp, " "));
-                        mySpotifySearchReturnsUri.Add(tmp.Uri);
+                        mySpotifySearchReturns.Add(tmp);
                     }
                 }
 
                 string MyClosestLink = "";
                 //int bestComparison = 9999;
-                for (int i = 0; i <= mySpotifySearchReturnsTitles.Count - 1; i++)
+                for (int i = 0; i <= mySpotifySearchReturns.Count - 1; i++)
                 {
-                    string ComparisonString = mySpotifySearchReturnsArtists[i] + " " + mySpotifySearchReturnsTitles[i];
+                    string ComparisonString = GetTrackStringSearch(mySpotifySearchReturns[i]);
                     int currComparison = Helper.FileHandling.getLevenshteinDistance(ComparisonString, SearchString);
-                    //Console.WriteLine("String: '{0}', SearchResult: '{1}', LevenshteinDistance: '{2}'", SearchString, ComparisonString, currComparison);
+                    Console.WriteLine("String: '{0}', SearchResult: '{1}', LevenshteinDistance: '{2}'", SearchString, ComparisonString, currComparison);
+
+
 
                     if (currComparison <= Options.MAX_LEVENSHTEIN_DISTANCE)
                     {
-                        MyClosestLink = mySpotifySearchReturnsUri[i];
+                        MyClosestLink = mySpotifySearchReturns[i].Uri;
                         break;
                     }
                     //if (currComparison < bestComparison)
@@ -396,6 +399,10 @@ namespace WasIchHoerePlaylist.APIs
                     //    bestComparison = currComparison;
                     //}
                 }
+
+                Console.WriteLine("Lets see:");
+                Console.WriteLine(MyClosestLink);
+                Console.WriteLine("Yep");
 
                 if (!String.IsNullOrWhiteSpace(MyClosestLink))
                 {
@@ -480,6 +487,11 @@ namespace WasIchHoerePlaylist.APIs
                 }
             }
             return AllArtists;
+        }
+
+        public static string GetTrackStringSearch(FullTrack ft)
+        {
+            return GetArtistString(ft, ", ") + " - " + ft.Name;
         }
 
         public static string GetTrackString(FullTrack ft)

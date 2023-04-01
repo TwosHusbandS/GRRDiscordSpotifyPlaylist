@@ -15,7 +15,7 @@ namespace WasIchHoerePlaylist.CommandHandling
             {
                 await command.RespondAsync(embed: Globals.BuildEmbed(command, "Will try to Shutdown the Bot...Wish me luck lmao", null, Globals.EmbedColors.NormalEmbed));
                 await Task.Delay(500);
-                Globals.ExecuteLinuxCommand("sudo systemctl restart grrdiscordspotifyplaylist.service");
+                Globals.ExecuteLinuxCommand("systemctl restart grrdiscordspotifyplaylist.service");
             }
             else
             {

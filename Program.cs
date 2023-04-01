@@ -36,7 +36,10 @@ Plans:
 
 
 - implement:
-- - Add Output for adding song when UserLimit is reached and we dont add because of that.
+
+- - linux commands broken for sure
+- - youtube into spotify search not great
+- - settings command parameter
 
 - Check all helps, classes, etc. apart from HandleCommand_Settings
 - fill with logging and error catch

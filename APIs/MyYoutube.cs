@@ -95,7 +95,16 @@ namespace WasIchHoerePlaylist.APIs
                     if (String.IsNullOrEmpty(rtrn))
                     {
                         rtrn = response.Items[0].Snippet.Title;
-                        rtrn.ToLower().Replace("official video", "");
+                        rtrn = rtrn.ToLower().Replace("official video", "");
+                        rtrn = rtrn.ToLower().Replace("visualiser", "");
+                        rtrn = rtrn.ToLower().Replace("visualizer", "");
+                        rtrn = rtrn.ToLower().Replace("bass boosted", "");
+                        rtrn = rtrn.ToLower().Replace("bass boost", "");
+                        rtrn = rtrn.ToLower().Replace("nightcore", "");
+                        rtrn = rtrn.ToLower().Replace("ft.", "");
+                        rtrn = rtrn.ToLower().Replace("feat", "");
+                        rtrn = rtrn.ToLower().Replace("  ", " ");
+                        rtrn = rtrn.ToLower().Replace("()", "");
                     }
                     //Console.WriteLine("=====");
                     //Console.WriteLine(rtrn);

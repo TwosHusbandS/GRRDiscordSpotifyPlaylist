@@ -52,25 +52,18 @@ namespace WasIchHoerePlaylist
         public static async Task<List<string>> GetFromContent(string Content)
         {
             // weird spotify.link/Some_ID_That_Redirects_To_proper_URL
+            string anyLinkRegex = @"http[s]?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/=]*)";
             string spotifyCinniRegex = @"http[s]?:\/\/spotify\.link\/([a-zA-Z0-9]{6,})";
             string spotifyRegex = @"http[s]?:\/\/open.spotify\.com\/(embed\/)?(track|album)\/([a-zA-Z0-9]{6,})";
             string youtubeRegex = @"http[s]?:\/\/(www.)?(m.)?((youtube(-nocookie)?\.com\/((watch\?v=)|(v\/)|(embed\/)))|(youtu.be\/))[a-zA-Z0-9\-_]{5,}";
-
             string spotifyUriIDRegex = @"(spotify:track:)([a-zA-Z0-9]{10,30})";
+            // cant match ID only because it will match other parts of other links
+
 
             // https://regex101.com/r/PAuTVh/1
 
             List<string> MyUris = new List<string>();
 
-            Regex MySpotifyCinniRegex = new Regex(spotifyCinniRegex);
-            foreach (Match MySpotifyCinniMatch in MySpotifyCinniRegex.Matches(Content))
-            {
-                if (MySpotifyCinniMatch.Success)
-                {
-                    string tmp = await Globals.UrlLengthen(MySpotifyCinniMatch.Groups[0].ToString());
-                    Content = Content + " " + tmp;
-                }
-            }
 
             Regex MySpotifyUriIDRegex = new Regex(spotifyUriIDRegex);
             foreach (Match MySpotifyUriIDMatch in MySpotifyUriIDRegex.Matches(Content))
@@ -85,22 +78,72 @@ namespace WasIchHoerePlaylist
             }
 
 
-            Regex MySpotifyRegex = new Regex(spotifyRegex);
-            foreach (Match MySpotifyMatch in MySpotifyRegex.Matches(Content))
+
+            Regex MyAnyLinkRegex = new Regex(anyLinkRegex);
+            foreach (Match MyAnyLinkMatch in MyAnyLinkRegex.Matches(Content))
             {
-                if (MySpotifyMatch.Success)
+                if (MyAnyLinkMatch.Success)
                 {
-                    if (MySpotifyMatch.Groups.Count >= 4)
+                    Content = MyAnyLinkMatch.Groups[0].Value;
+                    Console.WriteLine(Content);
+                    Console.WriteLine();
+
+                    Regex MySpotifyCinniRegex = new Regex(spotifyCinniRegex);
+                    foreach (Match MySpotifyCinniMatch in MySpotifyCinniRegex.Matches(Content))
                     {
-                        string Id = MySpotifyMatch.Groups[3].ToString();
-                        string Type = MySpotifyMatch.Groups[2].ToString().ToLower();
-                        if (Type == "track")
+                        if (MySpotifyCinniMatch.Success)
                         {
-                            MyUris.Add(APIs.MySpotify.GetTrackUriFromId(Id));
+                            string tmp = await Globals.UrlLengthen(MySpotifyCinniMatch.Groups[0].ToString());
+                            Content = Content + " " + tmp;
                         }
-                        else if (Type == "album")
+                    }
+
+
+
+
+                    Regex MySpotifyRegex = new Regex(spotifyRegex);
+                    foreach (Match MySpotifyMatch in MySpotifyRegex.Matches(Content))
+                    {
+                        if (MySpotifyMatch.Success)
                         {
-                            MyUris.Add(await APIs.MySpotify.GetTrackUriFromAlbum(Id));
+                            if (MySpotifyMatch.Groups.Count >= 4)
+                            {
+                                string Id = MySpotifyMatch.Groups[3].ToString();
+                                string Type = MySpotifyMatch.Groups[2].ToString().ToLower();
+                                if (Type == "track")
+                                {
+                                    MyUris.Add(APIs.MySpotify.GetTrackUriFromId(Id));
+                                }
+                                else if (Type == "album")
+                                {
+                                    MyUris.Add(await APIs.MySpotify.GetTrackUriFromAlbum(Id));
+                                }
+                            }
+                        }
+                    }
+
+
+
+                    Regex MyYoutubeRegex = new Regex(youtubeRegex);
+                    foreach (Match MyYoutubeMatch in MyYoutubeRegex.Matches(Content))
+                    {
+                        if (MyYoutubeMatch.Success)
+                        {
+                            if (MyYoutubeMatch.Groups.Count > 0)
+                            {
+                                string tmp = MyYoutubeMatch.Groups[0].ToString();
+                                if (tmp.Contains('='))
+                                {
+                                    tmp = tmp.Substring(tmp.LastIndexOf('=') + 1);
+                                }
+                                else
+                                {
+                                    tmp = tmp.Substring(tmp.LastIndexOf('/') + 1);
+                                }
+                                tmp = await APIs.MyYoutube.GetTitleFromVideoId(tmp);
+
+                                MyUris.Add(await APIs.MySpotify.GetUriFromSearch(tmp));
+                            }
                         }
                     }
                 }
@@ -108,28 +151,6 @@ namespace WasIchHoerePlaylist
 
 
 
-            Regex MyYoutubeRegex = new Regex(youtubeRegex);
-            foreach (Match MyYoutubeMatch in MyYoutubeRegex.Matches(Content))
-            {
-                if (MyYoutubeMatch.Success)
-                {
-                    if (MyYoutubeMatch.Groups.Count > 0)
-                    {
-                        string tmp = MyYoutubeMatch.Groups[0].ToString();
-                        if (tmp.Contains('='))
-                        {
-                            tmp = tmp.Substring(tmp.LastIndexOf('=') + 1);
-                        }
-                        else
-                        {
-                            tmp = tmp.Substring(tmp.LastIndexOf('/') + 1);
-                        }
-                        tmp = await APIs.MyYoutube.GetTitleFromVideoId(tmp);
-
-                        MyUris.Add(await APIs.MySpotify.GetUriFromSearch(tmp));
-                    }
-                }
-            }
 
             return MyUris;
         }
@@ -168,11 +189,13 @@ namespace WasIchHoerePlaylist
                 UserID = messageParam.Author.Id;
             }
 
+
+            // Removed cause of output further on
             // if user cant add songs
-            if (!UserSongs.CanUserAddSong(UserID))
-            {
-                return;
-            }
+            //if (!UserSongs.CanUserAddSong(UserID))
+            //{
+            //    return;
+            //}
 
 
 
@@ -211,8 +234,9 @@ namespace WasIchHoerePlaylist
 
             List<FullTrack> FullTracks = await APIs.MySpotify.GetAllPlaylistFullTracks();
             List<string> UrisToAdd = new List<string>();
+            List<string> DoubledUris = new List<string>();
 
-            // loop through all Uris we want to add
+            //loop through all Uris we want to add
             for (int i = 0; i <= MyRealUris.Count - 1; i++)
             {
                 bool dontAdd = false;
@@ -228,30 +252,52 @@ namespace WasIchHoerePlaylist
                         break;
                     }
                 }
+
+
                 // if dont add is false (so we want to add
                 if (!dontAdd)
                 {
                     // add to Uris To Add
                     UrisToAdd.Add(MyRealUris[i]);
                 }
+                else
+                {
+                    DoubledUris.Add(MyRealUris[i]);
+                }
             }
 
+
+            List<string> UrisNotToAdd = new List<string>();
 
             // if an actual User and not added Via Command
             if (UserID > 0)
             {
-                // do song limit shit
+                // get amount of songs user is able to add
                 int NumberOfSongsUserCanAdd = UserSongs.SongsUserCanAdd(UserID);
+                //NumberOfSongsUserCanAdd = 99999;
+
+                //Console.WriteLine();
+                //Console.WriteLine();
+                //Console.WriteLine("Debug 2");
+                //Console.WriteLine();
+
+                //Console.WriteLine(UserID);
+                //Console.WriteLine(NumberOfSongsUserCanAdd);
+
+                // if UrisToAdd has more than the amount of songs we can add
                 if (UrisToAdd.Count > NumberOfSongsUserCanAdd)
                 {
-                    UrisToAdd = UrisToAdd.GetRange(0, Options.USER_DAILY_LIMIT);
+                    UrisNotToAdd = UrisToAdd.GetRange(NumberOfSongsUserCanAdd, UrisToAdd.Count - NumberOfSongsUserCanAdd);
+                    UrisToAdd = UrisToAdd.GetRange(0, NumberOfSongsUserCanAdd);
                 }
+
+                //Console.WriteLine(UrisToAdd.Count);
+                //Console.WriteLine(UrisNotToAdd.Count);
+
+
                 UserSongs.AddUserSongs(UserID, UrisToAdd.Count);
             }
 
-
-            // Add Uris to Playlist
-            Console.WriteLine("Do we get here");
 
             if (Globals.CanContinueWithList(ref UrisToAdd))
             {
@@ -261,8 +307,8 @@ namespace WasIchHoerePlaylist
                     List<KeyValuePair<string, string>> tmp = new List<KeyValuePair<string, string>>();
 
                     List<FullTrack> TResponse = await APIs.MySpotify.GetTracksReponse(UrisToAdd);
+                    
                     List<FullTrack> removedSongs = await APIs.MySpotify.KeepSongLimit();
-
 
                     for (int i = 0; i <= TResponse.Count - 1; i++)
                     {
@@ -285,6 +331,37 @@ namespace WasIchHoerePlaylist
 
                         Discord.Rest.RestUserMessage RUM = await APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, null, tmp, Globals.EmbedColors.LoggingEmbed));
                         await RUM.AddReactionAsync(Globals.MyReactionEmote);
+                    }
+
+
+
+                    if (DoubledUris.Count > 0)
+                    {
+                        List<FullTrack> TResponseDoubled = await APIs.MySpotify.GetTracksReponse(DoubledUris);
+                        SocketGuildUser SGU = APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetUser(UserID);
+                        string sth = "Unfortunately were not able to add the following Songs,\nbecause they are in the Playlist already";
+                        List<KeyValuePair<string, string>> outputlist = new List<KeyValuePair<string, string>>();
+                        for (int i = 0; i <= TResponseDoubled.Count - 1; i++)
+                        {
+                            outputlist.Add(new KeyValuePair<string, string>(APIs.MySpotify.GetTrackString(TResponseDoubled[i]), TResponseDoubled[i].Uri));
+                        }
+                        await APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, sth, outputlist, Globals.EmbedColors.LoggingEmbed));
+                    }
+
+                    if (UserID > 0)
+                    {
+                        if (UrisNotToAdd.Count > 0)
+                        {
+                            List<FullTrack> TResponseNotAdding = await APIs.MySpotify.GetTracksReponse(UrisNotToAdd);
+                            SocketGuildUser SGU = APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetUser(UserID);
+                            string sth = "Unfortunately were not able to add the following Songs,\nbecause the User: " + Globals.GetUserText(SGU) + "\nhas reached their daily limit of " + Options.USER_DAILY_LIMIT + " Songs.";
+                            List<KeyValuePair<string, string>> outputlist = new List<KeyValuePair<string, string>>();
+                            for (int i = 0; i <= TResponseNotAdding.Count - 1; i++)
+                            {
+                                outputlist.Add(new KeyValuePair<string, string>(APIs.MySpotify.GetTrackString(TResponseNotAdding[i]), TResponseNotAdding[i].Uri));
+                            }
+                            await APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, sth, outputlist, Globals.EmbedColors.LoggingEmbed));
+                        }
                     }
 
                     if (removedSongs.Count > 0)
