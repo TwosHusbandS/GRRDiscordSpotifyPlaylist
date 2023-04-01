@@ -27,6 +27,7 @@ namespace WasIchHoerePlaylist.CommandHandling
                     UserIsAdmin = true;
                 }
 
+                PrintOptions(command);
 
                 switch (command.CommandName)
                 {
@@ -300,46 +301,7 @@ namespace WasIchHoerePlaylist.CommandHandling
                 .WithDescription("Shutdowns the bot.");
 
 
-            /*
-
-            help
-            status
-            playlist
-                        
-            songs
-            - list
-            - add
-            - remove
-
-            backups
-            - list
-            - create
-            - apply
-            - delete
-
-            settings
-            - show
-            - limit
-            - - playlist-amount-of-songs
-            - - user-daily-songs
-            - channel
-            - - playlist-channel
-            - - logging-channel
-            - color
-            - - color-type
-            - log
-            - - log-type
-            - - log-level
-            - spotify_playlist_id
-            - - keep-songs
-            - discord_guild_id
-            - show-activity-internal
-            - - true/false value
-
-
-
-
-            */
+    
 
             try
             {
@@ -364,8 +326,6 @@ namespace WasIchHoerePlaylist.CommandHandling
                     Console.WriteLine("---- DONE Removing existing Commands: '" + shi2.Name + "'...");
                 }
                 Console.WriteLine("Removing ALL commands...DONE");
-
-                //Console.WriteLine("DONE Removing all existing Commands");
 
 
                 Console.WriteLine("Building ALL commands...");
@@ -392,11 +352,15 @@ namespace WasIchHoerePlaylist.CommandHandling
 
         public static Task PrintOptions(SocketSlashCommand command)
         {
-
             for (int i = 0; i <= command.Data.Options.Count - 1; i++)
             {
                 SocketSlashCommandDataOption SSCDO = command.Data.Options.ElementAt(i);
+                Console.WriteLine();
+                Console.WriteLine();
+                Console.WriteLine("Command.CommandName: '" + command.CommandName + "'");
                 PrintOptions(SSCDO, i, "");
+                Console.WriteLine();
+                Console.WriteLine();
             }
 
             return Task.CompletedTask;

@@ -178,6 +178,10 @@ namespace WasIchHoerePlaylist
                 if (Hex.Length == 6)
                 {
                     Hex = "#" + Hex;
+                }
+
+                if (Hex.Length == 7)
+                {
                     _Color = System.Drawing.ColorTranslator.FromHtml(Hex);
                     return true;
                 }

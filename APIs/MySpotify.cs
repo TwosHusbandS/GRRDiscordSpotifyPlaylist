@@ -55,6 +55,8 @@ namespace WasIchHoerePlaylist.APIs
         {
             try
             {
+                // stole this shit from somewhere
+
                 var json = await Helper.FileHandling.AsyncReadContentOfFile(Globals.SpotifyTokenFile);
                 var token = JsonConvert.DeserializeObject<PKCETokenResponse>(json);
 
@@ -83,6 +85,8 @@ namespace WasIchHoerePlaylist.APIs
         {
             try
             {
+                // this is the other half of the shit i stole. 
+
                 var (verifier, challenge) = PKCEUtil.GenerateCodes();
 
                 await _server.Start();
@@ -126,6 +130,7 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         public static async Task<List<PlaylistTrack<IPlayableItem>>> GetAllPlaylistTracks()
         {
+            // Return all playableItems of a playlist, order by datetime when it was added.First item was added the longest ago.
             try
             {
                 Paging<PlaylistTrack<IPlayableItem>> MyTracks = await MySpotifyClient.Playlists.GetItems(Options.SPOTIFY_PLAYLIST_ID);
@@ -137,10 +142,12 @@ namespace WasIchHoerePlaylist.APIs
             }
             return new List<PlaylistTrack<IPlayableItem>>();
 
+            // DONT DELETE
+
+            // This was for pagination. Aka returning really everything instead of just the first page
             // https://johnnycrazy.github.io/SpotifyAPI-NET/docs/pagination/
             //IList<PlaylistTrack<IPlayableItem>> asdf = await MySpotifyClient.PaginateAll(MyTracks);
             //return (asdf.OrderBy(x => x.AddedAt).ToList());
-
         }
 
 
@@ -151,10 +158,12 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         public static async Task<List<FullTrack>> GetAllPlaylistFullTracks()
         {
+            // Init and declare list for return
             List<FullTrack> FullTracks = new List<FullTrack>();
 
             try
             {
+                // loop through playable items, if fullTrack, add to return list
                 List<PlaylistTrack<IPlayableItem>> Tracks = await GetAllPlaylistTracks();
                 for (int i = 0; i <= Tracks.Count - 1; i++)
                 {
@@ -179,19 +188,28 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         public static async Task<List<FullTrack>> KeepSongLimit()
         {
+            // remove older songs if limit of playlist songs is reached
+
+            // List of Tracks we removed, and list of Uris of the same thing
             List<FullTrack> RemovedTracks = new List<FullTrack>();
+            List<string> Uris = new List<string>();
             try
             {
+                // get all tracks currently in the playlist
                 List<FullTrack> FullTracks = await GetAllPlaylistFullTracks();
 
+                // if more songs in playlist than we want
                 if (FullTracks.Count > Options.SPOTIFY_PLAYLIST_NUMBER_OF_SONGS)
                 {
-                    List<string> Uris = new List<string>();
+                    // loop through the songs we want to remove
                     for (int i = 0; i <= ((FullTracks.Count - Options.SPOTIFY_PLAYLIST_NUMBER_OF_SONGS) - 1); i++)
                     {
+                        // add to both lists
                         Uris.Add(FullTracks[i].Uri);
                         RemovedTracks.Add(FullTracks[i]);
                     }
+
+                    // actually remove from playlist
                     await RemoveFromPlaylist(Uris);
                 }
             }
@@ -199,8 +217,10 @@ namespace WasIchHoerePlaylist.APIs
             {
                 Helper.Logger.Log(ex);
             }
+            // return Tracks we removed
             return RemovedTracks;
         }
+
 
 
         /// <summary>
@@ -210,6 +230,7 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         public static async Task RemoveFromPlaylist(List<FullTrack> FullTracks)
         {
+            // makes FullTracks into list of string, calls overloaded method
             List<string> tmp = new List<string>();
             for (int i = 0; i <= FullTracks.Count - 1; i++)
             {
@@ -226,6 +247,7 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         public static async Task RemoveFromPlaylist(string Uri)
         {
+            // calls overloaded method
             List<string> tmp = new List<string>();
             tmp.Add(Uri);
             await RemoveFromPlaylist(tmp);
@@ -241,16 +263,20 @@ namespace WasIchHoerePlaylist.APIs
         {
             try
             {
+                // define PlaylistRemoveitemsRequest and the Tracks property
                 PlaylistRemoveItemsRequest PRIR = new PlaylistRemoveItemsRequest();
                 PRIR.Tracks = new List<PlaylistRemoveItemsRequest.Item>();
 
+
                 foreach (string Uri in Uris)
                 {
+                    // define PlaylistRemoveItemsRequest Item and add to PlaylistRemoveItemRequest
                     PlaylistRemoveItemsRequest.Item PRIRI = new PlaylistRemoveItemsRequest.Item();
                     PRIRI.Uri = Uri;
                     PRIR.Tracks.Add(PRIRI);
                 }
 
+                // call to api to remove
                 await MySpotifyClient.Playlists.RemoveItems(Options.SPOTIFY_PLAYLIST_ID, PRIR);
             }
             catch (Exception ex)
@@ -268,12 +294,19 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         public static async Task<string> GetTrackUriFromAlbum(string AlbumID)
         {
+            // If an album only has one Track, return it
             try
             {
+                // Get full album
                 FullAlbum MyFullAlbum = await MySpotifyClient.Albums.Get(AlbumID);
-                if (MyFullAlbum.TotalTracks == 1)
+
+                // return that track as Uri
+                Paging<SimpleTrack> MyAlbumTracks = MyFullAlbum.Tracks;
+
+                // if only has one track
+                if (MyAlbumTracks.Items.Count == 1)
                 {
-                    Paging<SimpleTrack> MyAlbumTracks = MyFullAlbum.Tracks;
+                    // return that uri
                     return MyAlbumTracks.Items[0].Uri;
                 }
             }
@@ -286,34 +319,47 @@ namespace WasIchHoerePlaylist.APIs
         }
 
 
+        /// <summary>
+        /// Gets Information of FullTracks from List of Uris
+        /// </summary>
+        /// <param name="Uris"></param>
+        /// <returns></returns>
         public static async Task<List<FullTrack>> GetTracksReponse(List<string> Uris)
         {
             List<FullTrack> FullTracks = new List<FullTrack>();
             try
             {
+                Uris = Globals.RemoveNullEmptyWhitespaceDuplicateStringList(Uris);
+
                 if (Uris.Count == 0)
                 {
                     return FullTracks;
                 }
 
+                // Convert Uris to IDs
                 List<string> IDs = new List<string>();
                 for (int i = 0; i <= Uris.Count - 1; i++)
                 {
-                    string tmp = MySpotify.GetIdFromTrackUri(Uris[i]);
+                    string tmp = Globals.GetTrackIdFromTrackUri(Uris[i]);
                     IDs.Add(tmp);
                 }
+
+                // If  ID list is not empty / null etc.
                 if (Globals.CanContinueWithList(ref IDs))
                 {
+                    // request songs from spotify
                     TracksRequest TRequest = new TracksRequest(IDs);
                     TracksResponse TResponse = await MySpotifyClient.Tracks.GetSeveral(TRequest);
                     if (TResponse.Tracks != null)
                     {
+                        // return if not null
                         return TResponse.Tracks;
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                Helper.Logger.Log(ex);
             }
             return FullTracks;
         }
@@ -345,6 +391,7 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         public static async Task AddToPlaylist(string Uri)
         {
+            // Calls overloaded Method
             List<string> UriList = new List<string>();
             UriList.Add(Uri);
             await AddToPlaylist(UriList);
@@ -364,11 +411,13 @@ namespace WasIchHoerePlaylist.APIs
             }
             try
             {
+                // Some Magic to make the API work
                 SearchRequest.Types mySearchType = SearchRequest.Types.Track;
                 SearchRequest MySearchRequest = new SearchRequest(mySearchType, SearchString);
                 ISearchClient MySearchClient = MySpotifyClient.Search;
                 SearchResponse MySearchResponse = await MySearchClient.Item(MySearchRequest);
 
+                // Convert SearchResults into FullTracks
                 List<FullTrack> mySpotifySearchReturns = new List<FullTrack>();
                 foreach (var tmp in MySearchResponse.Tracks.Items)
                 {
@@ -378,32 +427,56 @@ namespace WasIchHoerePlaylist.APIs
                     }
                 }
 
+
+                // Loop through the fulltracks
                 string MyClosestLink = "";
-                //int bestComparison = 9999;
+                string MyClosestString = "";
+                int bestComparison = 9999;
                 for (int i = 0; i <= mySpotifySearchReturns.Count - 1; i++)
                 {
-                    string ComparisonString = GetTrackStringSearch(mySpotifySearchReturns[i]);
-                    int currComparison = Helper.FileHandling.getLevenshteinDistance(ComparisonString, SearchString);
-                    Console.WriteLine("String: '{0}', SearchResult: '{1}', LevenshteinDistance: '{2}'", SearchString, ComparisonString, currComparison);
+                    // Get String from Fulltrack we can compare to
+                    string SpotifyResultComparisonString = Globals.GetTrackStringSearch(mySpotifySearchReturns[i]);
+
+                    // get comparison score
+                    int currComparison = Helper.FileHandling.getLevenshteinDistance(SpotifyResultComparisonString, SearchString);
+
+                    //Console.WriteLine("SearchString: '{0}', SpotifySearchResult: '{1}', LevenshteinDistance: '{2}'", SearchString, SpotifyResultComparisonString, currComparison);
 
 
+                    // Do normal logic with getting the best result
+                    if (currComparison < bestComparison)
+                    {
+                        MyClosestLink = mySpotifySearchReturns[i].Uri;
+                        MyClosestString = SpotifyResultComparisonString;
+                        bestComparison = currComparison;
+                    }
 
+                    // if something is good enough return immediately
                     if (currComparison <= Options.MAX_LEVENSHTEIN_DISTANCE)
                     {
                         MyClosestLink = mySpotifySearchReturns[i].Uri;
                         break;
                     }
-                    //if (currComparison < bestComparison)
-                    //{
-                    //    MyClosestLink = mySpotifySearchReturnsUri[i];
-                    //    bestComparison = currComparison;
-                    //}
+
+
+                    // if we get to the last index, and we havent broken out of the loop
+                    if (i == mySpotifySearchReturns.Count - 1)
+                    {
+                        if (Options.SHOW_ACTIVITY_INTERNAL)
+                        {
+                            // log what was the closest match even tho we didnt use it
+                            string Descripton = "Could not find anything lower or equal than our\nOptions.MAX_LEVENSHTEIN_DISTANCE of " + Options.MAX_LEVENSHTEIN_DISTANCE + "\n";
+                            Descripton = Descripton + "\nSearchString: '" + SearchString + "'";
+                            Descripton = Descripton + "\nClosestMatch: '" + MyClosestString + "'";
+                            Descripton = Descripton + "\nLevenshtein Comparison: '" + bestComparison + "'";
+                            Descripton = Descripton + "\nLink of that: '" + MyClosestLink + "'";
+                            APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, Descripton, null, Globals.EmbedColors.LoggingEmbed));
+                        }
+
+                    }
                 }
 
-                Console.WriteLine("Lets see:");
-                Console.WriteLine(MyClosestLink);
-                Console.WriteLine("Yep");
-
+                // make sure we dont return garbage
                 if (!String.IsNullOrWhiteSpace(MyClosestLink))
                 {
                     return MyClosestLink;
@@ -420,8 +493,11 @@ namespace WasIchHoerePlaylist.APIs
 
 
 
-
-        /*
+        /// <summary>
+        /// Check if a Track is in our Playlist already
+        /// </summary>
+        /// <param name="SongUri"></param>
+        /// <returns></returns>
         public static async Task<bool> IsSongInPlaylist(string SongUri)
         {
             try
@@ -443,61 +519,10 @@ namespace WasIchHoerePlaylist.APIs
 
             return false;
         }
-        */
 
 
 
-        /// <summary>
-        /// Gets a Spotify URI string just by a song ID
-        /// </summary>
-        /// <param name="Id"></param>
-        /// <returns></returns>
-        public static string GetTrackUriFromId(string Id)
-        {
-            return "spotify:track:" + Id;
-        }
-
-        public static string GetIdFromTrackUri(string Uri)
-        {
-            string rtrn = "";
-            try
-            {
-                rtrn = Uri.Substring(Uri.LastIndexOf(':') + 1);
-            }
-            catch { }
-            return rtrn;
-        }
-
-
-        /// <summary>
-        /// Returns all Artists of a FullTrack as one String
-        /// </summary>
-        /// <param name="ft"></param>
-        /// <param name="delimintor"></param>
-        /// <returns></returns>
-        public static string GetArtistString(FullTrack ft, string delimintor)
-        {
-            string AllArtists = "";
-            for (int i = 0; i <= ft.Artists.Count - 1; i++)
-            {
-                AllArtists += ft.Artists[i].Name;
-                if (i < ft.Artists.Count - 1)
-                {
-                    AllArtists += delimintor;
-                }
-            }
-            return AllArtists;
-        }
-
-        public static string GetTrackStringSearch(FullTrack ft)
-        {
-            return GetArtistString(ft, ", ") + " - " + ft.Name;
-        }
-
-        public static string GetTrackString(FullTrack ft)
-        {
-            return GetArtistString(ft, ", ") + " - " + ft.Name + " (" + ft.Album.Name + ")";
-        }
+     
 
     }
 }

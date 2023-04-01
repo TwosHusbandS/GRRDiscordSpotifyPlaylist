@@ -38,26 +38,7 @@ namespace WasIchHoerePlaylist.CommandHandling
                     }
                     break;
             }
-
-            /*
-            var CommandSongs = new Discord.SlashCommandBuilder()
-            .WithName("songs")
-            .AddOption(new SlashCommandOptionBuilder()
-                .WithName("list")
-            .AddOption(new SlashCommandOptionBuilder()
-                .WithName("add")
-                .AddOption("link", ApplicationCommandOptionType.String, "link to the song you want to add", isRequired: true))
-            .AddOption(new SlashCommandOptionBuilder()
-                .WithName("remove")
-                .AddOption("index", ApplicationCommandOptionType.Integer, "Number of the song you want to remove", isRequired: true));
-            */
         }
-
-
-        /// ////////////////////////////////////////////////////////////////////// ///
-        /// /////                                                            ///// ///
-        /// ////////////////////////////////////////////////////////////////////// ///
-
 
 
         static async Task HandleCommand_Songs_List(SocketSlashCommand command, bool UserIsAdmin)
@@ -78,7 +59,7 @@ namespace WasIchHoerePlaylist.CommandHandling
             {
                 for (int i = 0; i <= FullTracks.Count - 1; i++)
                 {
-                    tmp = tmp + (i + 1) + ") " + APIs.MySpotify.GetArtistString(FullTracks[i], ", ") + " " + FullTracks[i].Name + "\n";
+                    tmp = tmp + (i + 1) + ") " + Globals.GetArtistString(FullTracks[i], ", ") + " " + FullTracks[i].Name + "\n";
 
                     if (i == FullTracks.Count - 1)
                     {
@@ -140,7 +121,7 @@ namespace WasIchHoerePlaylist.CommandHandling
                     string description = "";
                     for (int i = 0; i <= FullTracks.Count - 1; i++)
                     {
-                        description += APIs.MySpotify.GetTrackString(FullTracks[i]);
+                        description += Globals.GetTrackString(FullTracks[i]);
                         description += '\n';
                     }
                     description = description.TrimEnd('\n');
@@ -219,7 +200,7 @@ namespace WasIchHoerePlaylist.CommandHandling
                     string description = "";
                     for (int i = 0; i <= FullTracks.Count -1; i++)
                     {
-                        description += APIs.MySpotify.GetTrackString(FullTracks[i]);
+                        description += Globals.GetTrackString(FullTracks[i]);
                         description += '\n';
                     }
                     description = description.TrimEnd('\n');

@@ -72,7 +72,7 @@ namespace WasIchHoerePlaylist
                 {
                     if (MySpotifyUriIDMatch.Groups.Count >= 3)
                     {
-                        MyUris.Add(APIs.MySpotify.GetTrackUriFromId(MySpotifyUriIDMatch.Groups[2].ToString()));
+                        MyUris.Add(Globals.GetTrackUriFromTrackId(MySpotifyUriIDMatch.Groups[2].ToString()));
                     }
                 }
             }
@@ -112,7 +112,7 @@ namespace WasIchHoerePlaylist
                                 string Type = MySpotifyMatch.Groups[2].ToString().ToLower();
                                 if (Type == "track")
                                 {
-                                    MyUris.Add(APIs.MySpotify.GetTrackUriFromId(Id));
+                                    MyUris.Add(Globals.GetTrackUriFromTrackId(Id));
                                 }
                                 else if (Type == "album")
                                 {
@@ -326,7 +326,7 @@ namespace WasIchHoerePlaylist
                                 tmp.Add(new KeyValuePair<string, string>("Link:", tmpLink));
                             }
                         }
-                        tmp.Add(new KeyValuePair<string, string>(Globals.SongAddedDescription, APIs.MySpotify.GetTrackString(TResponse[i])));
+                        tmp.Add(new KeyValuePair<string, string>(Globals.SongAddedDescription, Globals.GetTrackString(TResponse[i])));
                         tmp.Add(new KeyValuePair<string, string>(Globals.SongAddedTopline, TResponse[i].Uri));
 
                         Discord.Rest.RestUserMessage RUM = await APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, null, tmp, Globals.EmbedColors.LoggingEmbed));
@@ -343,7 +343,7 @@ namespace WasIchHoerePlaylist
                         List<KeyValuePair<string, string>> outputlist = new List<KeyValuePair<string, string>>();
                         for (int i = 0; i <= TResponseDoubled.Count - 1; i++)
                         {
-                            outputlist.Add(new KeyValuePair<string, string>(APIs.MySpotify.GetTrackString(TResponseDoubled[i]), TResponseDoubled[i].Uri));
+                            outputlist.Add(new KeyValuePair<string, string>(Globals.GetTrackString(TResponseDoubled[i]), TResponseDoubled[i].Uri));
                         }
                         await APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, sth, outputlist, Globals.EmbedColors.LoggingEmbed));
                     }
@@ -358,7 +358,7 @@ namespace WasIchHoerePlaylist
                             List<KeyValuePair<string, string>> outputlist = new List<KeyValuePair<string, string>>();
                             for (int i = 0; i <= TResponseNotAdding.Count - 1; i++)
                             {
-                                outputlist.Add(new KeyValuePair<string, string>(APIs.MySpotify.GetTrackString(TResponseNotAdding[i]), TResponseNotAdding[i].Uri));
+                                outputlist.Add(new KeyValuePair<string, string>(Globals.GetTrackString(TResponseNotAdding[i]), TResponseNotAdding[i].Uri));
                             }
                             await APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, sth, outputlist, Globals.EmbedColors.LoggingEmbed));
                         }
@@ -370,7 +370,7 @@ namespace WasIchHoerePlaylist
                         string Output = "";
                         for (int i = 0; i <= removedSongs.Count - 1; i++)
                         {
-                            Output += APIs.MySpotify.GetTrackString(removedSongs[i]);
+                            Output += Globals.GetTrackString(removedSongs[i]);
                             if (i < removedSongs.Count - 1)
                             {
                                 Output += "\n";

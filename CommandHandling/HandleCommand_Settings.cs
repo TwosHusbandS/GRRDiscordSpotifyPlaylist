@@ -49,7 +49,7 @@ namespace WasIchHoerePlaylist.CommandHandling
                     case "log":
                         HandleSettingsCommand_LogLevel(command, parameter);
                         break;
-                    case "spotify-id":
+                    case "spotify-playlist":
                         HandleSettingsCommand_Playlist(command, parameter);
                         break;
                     case "maximum-levenshtein-distance":
@@ -130,12 +130,13 @@ namespace WasIchHoerePlaylist.CommandHandling
             {
                 SocketGuildChannel channel = (SocketGuildChannel)Parameter[1].Value;
                 string OptionName = "";
-                if (Parameter[0].Value == "1")
+
+                if (Parameter[0].Value.ToString() == "1")
                 {
                     Options.DISCORD_PUBLIC_CHANNEL = channel.Id;
                     OptionName = "public-channel";
                 }
-                else if (Parameter[0].Value == "2")
+                else if (Parameter[0].Value.ToString() == "2")
                 {
                     Options.DISCORD_INTERNAL_CHANNEL = channel.Id;
                     OptionName = "internal-channel";
@@ -196,37 +197,51 @@ namespace WasIchHoerePlaylist.CommandHandling
         {
             try
             {
-                int Number = (int)Parameter[1].Value;
-                string OptionName = "";
-                if (4 > Number && Number > 0)
+                int Number = -1;
+                bool ParseResult = Int32.TryParse(Parameter[1].Value.ToString(), out Number);
+
+                if (ParseResult)
                 {
-                    if (Parameter[0].Value == "1")
-                    {
-                        Options.LOG_LEVEL_DISCORD = Number;
-                        OptionName = "Discord-Logging-Level";
-                    }
-                    else if (Parameter[0].Value == "2")
-                    {
-                        Options.LOG_LEVEL_FILE = Number;
-                        OptionName = "File-Logging-Level";
-                    }
-                    Options.WriteToFile();
 
-                    string OptionValue = "";
-                    switch (Number)
+                    string OptionName = "";
+                    if (4 > Number && Number > 0)
                     {
-                        case 1:
-                            OptionValue = "Info";
-                            break;
-                        case 2:
-                            OptionValue = "Warning";
-                            break;
-                        case 3:
-                            OptionValue = "Error";
-                            break;
-                    }
+                        if (Parameter[0].Value.ToString() == "1")
+                        {
+                            Options.LOG_LEVEL_DISCORD = Number;
+                            OptionName = "Discord-Logging-Level";
+                        }
+                        else if (Parameter[0].Value.ToString() == "2")
+                        {
+                            Options.LOG_LEVEL_FILE = Number;
+                            OptionName = "File-Logging-Level";
+                        }
+                        Options.WriteToFile();
 
-                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Changed '" + OptionName + "' to: '" + OptionValue + "'", null, Globals.EmbedColors.NormalEmbed));
+                        string OptionValue = "";
+                        switch (Number)
+                        {
+                            case 1:
+                                OptionValue = "Info";
+                                break;
+                            case 2:
+                                OptionValue = "Warning";
+                                break;
+                            case 3:
+                                OptionValue = "Error";
+                                break;
+                        }
+
+                        command.RespondAsync(embed: Globals.BuildEmbed(command, "Changed '" + OptionName + "' to: '" + OptionValue + "'", null, Globals.EmbedColors.NormalEmbed));
+                    }
+                    else
+                    {
+                        command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Loglevel Setting (Int not between 1 and 3)", null, Globals.EmbedColors.ErrorEmbed));
+                    }
+                }
+                else
+                {
+                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Loglevel Setting (Parse Int failed)", null, Globals.EmbedColors.ErrorEmbed));
                 }
             }
             catch (Exception ex)
@@ -241,10 +256,10 @@ namespace WasIchHoerePlaylist.CommandHandling
         {
             try
             {
-
                 string MyRegexPattern = @"^(http[s]?:\/\/open.spotify\.com\/playlist\/)?([a-zA-Z0-9]{6,})";
                 Regex MySpotifyRegex = new Regex(MyRegexPattern);
-                Match MySpotifyMatch = MySpotifyRegex.Match(Parameter[2].Value.ToString());
+                Match MySpotifyMatch = MySpotifyRegex.Match(Parameter[1].Value.ToString());
+
 
                 string NewSpotifyPlaylistID = "";
 
@@ -313,16 +328,25 @@ namespace WasIchHoerePlaylist.CommandHandling
         {
             try
             {
-                int value = (int)Parameter[1].Value;
-                if (value > 0)
+                int value = -1;
+                bool ParseResult = Int32.TryParse(Parameter[0].Value.ToString(), out value);
+
+                if (ParseResult)
                 {
-                    Options.MAX_LEVENSHTEIN_DISTANCE = value;
-                    Options.WriteToFile();
-                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Changed 'MAX_LEVENSHTEIN_DISTANCE' to: '" + value + "'", null, Globals.EmbedColors.NormalEmbed));
+                    if (value > 0)
+                    {
+                        Options.MAX_LEVENSHTEIN_DISTANCE = value;
+                        Options.WriteToFile();
+                        command.RespondAsync(embed: Globals.BuildEmbed(command, "Changed 'MAX_LEVENSHTEIN_DISTANCE' to: '" + value + "'", null, Globals.EmbedColors.NormalEmbed));
+                    }
+                    else
+                    {
+                        command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Levenshtein Setting (Value is 0 or less)", null, Globals.EmbedColors.ErrorEmbed));
+                    }
                 }
                 else
                 {
-                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Levenshtein Setting (Value is 0 or less)", null, Globals.EmbedColors.ErrorEmbed));
+                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Levenshtein Setting (TryParse shit the bed)", null, Globals.EmbedColors.ErrorEmbed));
                 }
             }
             catch (Exception ex)
@@ -332,7 +356,7 @@ namespace WasIchHoerePlaylist.CommandHandling
             }
             return Task.CompletedTask;
         }
-            
+
 
         static Task HandleSettingsCommand_DiscordGuildId(SocketSlashCommand command, List<KeyValuePair<string, object>> Parameter)
         {
@@ -363,7 +387,7 @@ namespace WasIchHoerePlaylist.CommandHandling
         {
             try
             {
-                if (Parameter[1].Value.ToString() == "1")
+                if (Parameter[0].Value.ToString() == "1")
                 {
                     Options.SHOW_ACTIVITY_INTERNAL = true;
                 }

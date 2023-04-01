@@ -44,23 +44,7 @@ namespace WasIchHoerePlaylist.CommandHandling
                     break;
             }
 
-
             return Task.CompletedTask;
-            /*
-            var CommandBackups = new Discord.SlashCommandBuilder()
-            .WithName("backups")
-            .AddOption(new SlashCommandOptionBuilder()
-                .WithName("list")
-            .AddOption(new SlashCommandOptionBuilder()
-                .WithName("create")
-                .AddOption("name", ApplicationCommandOptionType.String, "Name of the backup you want to create", isRequired: true)
-            .AddOption(new SlashCommandOptionBuilder()
-                .WithName("delete")
-                .AddOption("name", ApplicationCommandOptionType.String, "Name of the backup you want to delete", isRequired: true)
-            .AddOption(new SlashCommandOptionBuilder()
-                .WithName("apply")
-                .AddOption("name", ApplicationCommandOptionType.String, "Name of the backup you want to use.", isRequired: true);
-            */
         }
 
 

@@ -114,7 +114,19 @@ namespace WasIchHoerePlaylist.APIs
 
 
         /// <summary>
-        /// Sends a message. If EmbedColor is null, sends as non-embed
+        /// Sends one String to logging Channel as non Embed
+        /// </summary>
+        /// <param name="MyLogMessage"></param>
+        /// <returns></returns>
+        public static async Task<RestUserMessage> SendMessage(string MyLogMessage)
+        {
+            RestUserMessage RUM = await SendMessage(MyLogMessage, Globals.EmbedColors.NoEmbed);
+            return RUM;
+        }
+
+
+        /// <summary>
+        /// Sends one string to logging Channel, can do Embed if Color set.
         /// </summary>
         /// <param name="MyLogMessage"></param>
         /// <param name="pEmbedColor"></param>
@@ -134,6 +146,11 @@ namespace WasIchHoerePlaylist.APIs
         }
 
 
+        /// <summary>
+        /// Sends embed to logging Channel.
+        /// </summary>
+        /// <param name="pEmbed"></param>
+        /// <returns></returns>
         public static async Task<RestUserMessage> SendMessage(Embed pEmbed)
         {
             RestUserMessage RUM;
@@ -152,9 +169,6 @@ namespace WasIchHoerePlaylist.APIs
             {
                 StringBuilder sb = new StringBuilder($"{MyDiscordClient.CurrentUser} is connected!");
                 Helper.Logger.Log(sb.ToString(), 1);
-                //await CommandHandling.MyCommandHandling.BuildCommands(APIs.MyDiscord.MyDiscordClient);
-
-                //return Task.CompletedTask;
             });
             return Task.CompletedTask;
         }
@@ -180,6 +194,13 @@ namespace WasIchHoerePlaylist.APIs
         }
 
 
+        /// <summary>
+        /// Message Received (updated) Event
+        /// </summary>
+        /// <param name="arg1"></param>
+        /// <param name="arg2"></param>
+        /// <param name="arg3"></param>
+        /// <returns></returns>
         private Task MyDiscordClient_MessageUpdated(Cacheable<IMessage, ulong> arg1, SocketMessage arg2, ISocketMessageChannel arg3)
         {
             _ = Task.Run(async () =>
@@ -202,40 +223,66 @@ namespace WasIchHoerePlaylist.APIs
         {
             _ = Task.Run(async () =>
             {
+                // We add output message in internal channel when we add a song
+                // check if certain reaction was added to it
+                // if so remove it from playlist
+
+
                 try
                 {
-                    if ((arg3.Channel.Id == Options.DISCORD_INTERNAL_CHANNEL) &&
-                        (arg3.UserId != Globals.OurBotID))
+                    // if reaction was in our internal channel
+                    if (arg3.Channel.Id == Options.DISCORD_INTERNAL_CHANNEL)
                     {
-                        Console.WriteLine("User: '{0}' reacted to message: '{1}' with reaction: '{2}'", arg3.User, arg3.MessageId, arg3.Emote.Name);
-
-                        if (arg3.Emote.Equals(Globals.MyReactionEmote))
+                        // if reaction was NOT by our bot
+                        if (arg3.UserId != Globals.OurBotID)
                         {
-                            IUserMessage asdf = await arg1.DownloadAsync();
 
-                            string SongName = "";
-                            string SongUri = "";
-                            // see if we can yeet song
-                            foreach (Embed tmpEmbed in asdf.Embeds)
+                            // if reaction equals the one we are looking for
+                            if (arg3.Emote.Equals(Globals.MyReactionEmote))
                             {
-                                foreach (var sth in tmpEmbed.Fields)
+
+                                // grab message someone reacted to
+                                IUserMessage MyMessage = await arg1.DownloadAsync();
+
+                                // declare and init variables we need to remove song and output
+                                string SongName = "";
+                                string SongUri = "";
+
+                                // loop through all embeds
+                                foreach (Embed MyEmbed in MyMessage.Embeds)
                                 {
-                                    if (sth.Name == Globals.SongAddedTopline)
+                                    // loop through fields of embed
+                                    foreach (var EmbedField in MyEmbed.Fields)
                                     {
-                                        SongUri = sth.Value;
-                                    }
-                                    else if (sth.Name == Globals.SongAddedDescription)
-                                    {
-                                        SongName = sth.Value;
+                                        // if Name of Field of Embed matches our string
+                                        if (EmbedField.Name == Globals.SongAddedTopline)
+                                        {
+                                            // Set Uri
+                                            SongUri = EmbedField.Value;
+                                        }
+
+                                        // if Name of Field of Embed matches our other String
+                                        else if (EmbedField.Name == Globals.SongAddedDescription)
+                                        {
+                                            // Set SongName
+                                            SongName = EmbedField.Value;
+                                        }
                                     }
                                 }
+
+                                // Initiate List for Output
+                                List<KeyValuePair<string, string>> SongList = new List<KeyValuePair<string, string>>();
+
+                                // Add which song we removed to Output
+                                SongList.Add(new KeyValuePair<string, string>("Removed following Song from the Playlist, as per Reaction-Request:", SongName));
+
+                                // Remove song from Playlist
+                                APIs.MySpotify.RemoveFromPlaylist(SongUri);
+
+                                // output to channel
+                                SendMessage(Globals.BuildEmbed(null, null, SongList, Globals.EmbedColors.LoggingEmbed));
+
                             }
-
-                            List<KeyValuePair<string, string>> SongList = new List<KeyValuePair<string, string>>();
-                            SongList.Add(new KeyValuePair<string, string>("Removed following Song from the Playlist, as per Reaction-Request:", SongName));
-
-                            APIs.MySpotify.RemoveFromPlaylist(SongUri);
-                            SendMessage(Globals.BuildEmbed(null, null, SongList, Globals.EmbedColors.LoggingEmbed));
                         }
                     }
                 }
