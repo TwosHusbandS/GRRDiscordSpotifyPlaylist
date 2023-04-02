@@ -75,7 +75,7 @@ namespace WasIchHoerePlaylist.Helper
 
             if (LogToDiscord)
             {
-                APIs.MyDiscord.SendMessage(MyLogMessage, Globals.EmbedColors.NoEmbed);
+                APIs.MyDiscord.SendMessage(MyLogMessage, Helper.DiscordHelper.EmbedColors.NoEmbed);
             }
             if (LogToFile)
             {
@@ -85,6 +85,7 @@ namespace WasIchHoerePlaylist.Helper
 
             return Task.CompletedTask;
         }
+
 
         /// <summary>
         /// Logging Method of an exception.

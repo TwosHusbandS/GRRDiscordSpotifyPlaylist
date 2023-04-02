@@ -38,6 +38,7 @@ Plans:
 - implement:
 
 - - linux commands broken for sure
+- - log
 
 - Check all helps, classes, etc. apart from HandleCommand_Settings
 - fill with logging and error catch

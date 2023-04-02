@@ -12,10 +12,16 @@ namespace WasIchHoerePlaylist.CommandHandling
 {
     internal partial class MyCommandHandling
     {
+        /// <summary>
+        /// Handle Playlist Command
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="UserIsAdmin"></param>
+        /// <returns></returns>
         static Task HandleCommand_Playlist(SocketSlashCommand command, bool UserIsAdmin)
         {
-            string tmp = "You can also click the blue text at the top of this message.\nAlso make sure to follow the playlist and the GRR Spotify account!\n\n" + Logic.SpotifyPlaylist;
-            command.RespondAsync(embed: Globals.BuildEmbed(command, tmp, null, Globals.EmbedColors.NormalEmbed));
+            string tmp = "You can also click the blue text at the top of this message.\nAlso make sure to follow the playlist and the GRR Spotify account!\n\n" + Globals.SpotifyPlaylist;
+            command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, tmp, null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
             return Task.CompletedTask;
         }
     }

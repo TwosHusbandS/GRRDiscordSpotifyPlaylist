@@ -19,6 +19,9 @@ namespace WasIchHoerePlaylist
         }
 
 
+        /// <summary>
+        /// Methods that Starts a new Timer.
+        /// </summary>
         private static void Timer_Start()
         {
             _ = Task.Run(async () =>
@@ -33,15 +36,25 @@ namespace WasIchHoerePlaylist
             });
         }
 
+
+        /// <summary>
+        /// Method that runs if Timer Elapsed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private static void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
         {
             try
             {
+                // Method we want to execute at midnight
                 HitMidnight();
+
+                // Dispose of old Stuff
                 System.Timers.Timer MyOldTimer = (System.Timers.Timer)sender;
                 MyOldTimer.Stop();
                 MyOldTimer.Dispose();
 
+                // Start new Timer
                 Timer_Start();
             }
             catch (Exception ex)
@@ -52,8 +65,13 @@ namespace WasIchHoerePlaylist
 
         private static Task HitMidnight()
         {
+            // Reset User Songs
             UserSongs.Reset();
-            APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, "Just reset all User limits at midnight.\nWill do autobackup now.", null, Globals.EmbedColors.LoggingEmbed));
+
+            // Output
+            APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, "Just reset all User limits at midnight.\nWill do autobackup now.", null, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
+            
+            // Create Auto Backups
             Backups.AutoCreate();
 
             return Task.CompletedTask;

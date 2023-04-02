@@ -149,6 +149,11 @@ namespace WasIchHoerePlaylist
         }
 
 
+        /// <summary>
+        /// Sets User Songs
+        /// </summary>
+        /// <param name="pUserID"></param>
+        /// <param name="pSongCount"></param>
         public static void SetUserAdds(ulong pUserID, int pSongCount)
         {
             bool FoundUser = false;

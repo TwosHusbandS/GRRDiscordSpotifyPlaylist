@@ -50,8 +50,8 @@ namespace WasIchHoerePlaylist.APIs
             MyDiscordClient = new DiscordSocketClient(config);
 
             // Subscribing to client events, so that we may receive them whenever they're invoked.
-            MyDiscordClient.Log += LogAsync;
             MyDiscordClient.Ready += ReadyAsync;
+            MyDiscordClient.Log += LogAsync;
             MyDiscordClient.MessageReceived += MessageReceivedAsync;
             MyDiscordClient.MessageUpdated += MyDiscordClient_MessageUpdated;
             MyDiscordClient.SlashCommandExecuted += SlashCommandExecuted;
@@ -78,6 +78,27 @@ namespace WasIchHoerePlaylist.APIs
         }
 
 
+
+
+
+        #region Events
+
+        /// <summary>
+        /// Event when DiscordClient is fully initialized and ready.
+        /// </summary>
+        /// <returns></returns>
+        private Task ReadyAsync()
+        {
+            _ = Task.Run(async () =>
+            {
+                StringBuilder sb = new StringBuilder($"{MyDiscordClient.CurrentUser} is connected!");
+                Helper.Logger.Log(sb.ToString(), 1);
+            });
+            return Task.CompletedTask;
+        }
+
+
+
         /// <summary>
         /// DiscordBot Logging Message. Logs to console. 
         /// If LogSeverity.Error logs to File and Discord, if Warning logs to File.
@@ -88,6 +109,8 @@ namespace WasIchHoerePlaylist.APIs
         {
             StringBuilder sb = new StringBuilder($"{DateTime.Now,-19} [{log.Severity,8}] {log.Source}: {log.Message} {log.Exception}");
             int LogLevel = 0;
+
+            // convert enum log.Severity to int Loglevel
             switch (log.Severity)
             {
 
@@ -104,6 +127,7 @@ namespace WasIchHoerePlaylist.APIs
             }
 
 
+            // Pass to Logging function if relevant
             if (LogLevel != 0)
             {
                 Helper.Logger.Log(sb.ToString(), LogLevel);
@@ -113,65 +137,6 @@ namespace WasIchHoerePlaylist.APIs
         }
 
 
-        /// <summary>
-        /// Sends one String to logging Channel as non Embed
-        /// </summary>
-        /// <param name="MyLogMessage"></param>
-        /// <returns></returns>
-        public static async Task<RestUserMessage> SendMessage(string MyLogMessage)
-        {
-            RestUserMessage RUM = await SendMessage(MyLogMessage, Globals.EmbedColors.NoEmbed);
-            return RUM;
-        }
-
-
-        /// <summary>
-        /// Sends one string to logging Channel, can do Embed if Color set.
-        /// </summary>
-        /// <param name="MyLogMessage"></param>
-        /// <param name="pEmbedColor"></param>
-        /// <returns></returns>
-        public static async Task<RestUserMessage> SendMessage(string MyLogMessage, Globals.EmbedColors pEmbedColor)
-        {
-            RestUserMessage RUM;
-            if (pEmbedColor == Globals.EmbedColors.NoEmbed)
-            {
-                RUM = await APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetTextChannel(Options.DISCORD_INTERNAL_CHANNEL).SendMessageAsync(MyLogMessage);
-            }
-            else
-            {
-                RUM = await SendMessage(Globals.BuildEmbed(null, MyLogMessage, null, pEmbedColor));
-            }
-            return RUM;
-        }
-
-
-        /// <summary>
-        /// Sends embed to logging Channel.
-        /// </summary>
-        /// <param name="pEmbed"></param>
-        /// <returns></returns>
-        public static async Task<RestUserMessage> SendMessage(Embed pEmbed)
-        {
-            RestUserMessage RUM;
-            RUM = await APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetTextChannel(Options.DISCORD_INTERNAL_CHANNEL).SendMessageAsync(embed: pEmbed);
-            return RUM;
-        }
-
-
-        /// <summary>
-        /// Event when DiscordClient is fully initialized and ready.
-        /// </summary>
-        /// <returns></returns>
-        private Task ReadyAsync()
-        {
-            _ = Task.Run(async () =>
-            {
-                StringBuilder sb = new StringBuilder($"{MyDiscordClient.CurrentUser} is connected!");
-                Helper.Logger.Log(sb.ToString(), 1);
-            });
-            return Task.CompletedTask;
-        }
 
 
         /// <summary>
@@ -241,46 +206,7 @@ namespace WasIchHoerePlaylist.APIs
                             if (arg3.Emote.Equals(Globals.MyReactionEmote))
                             {
 
-                                // grab message someone reacted to
-                                IUserMessage MyMessage = await arg1.DownloadAsync();
-
-                                // declare and init variables we need to remove song and output
-                                string SongName = "";
-                                string SongUri = "";
-
-                                // loop through all embeds
-                                foreach (Embed MyEmbed in MyMessage.Embeds)
-                                {
-                                    // loop through fields of embed
-                                    foreach (var EmbedField in MyEmbed.Fields)
-                                    {
-                                        // if Name of Field of Embed matches our string
-                                        if (EmbedField.Name == Globals.SongAddedTopline)
-                                        {
-                                            // Set Uri
-                                            SongUri = EmbedField.Value;
-                                        }
-
-                                        // if Name of Field of Embed matches our other String
-                                        else if (EmbedField.Name == Globals.SongAddedDescription)
-                                        {
-                                            // Set SongName
-                                            SongName = EmbedField.Value;
-                                        }
-                                    }
-                                }
-
-                                // Initiate List for Output
-                                List<KeyValuePair<string, string>> SongList = new List<KeyValuePair<string, string>>();
-
-                                // Add which song we removed to Output
-                                SongList.Add(new KeyValuePair<string, string>("Removed following Song from the Playlist, as per Reaction-Request:", SongName));
-
-                                // Remove song from Playlist
-                                APIs.MySpotify.RemoveFromPlaylist(SongUri);
-
-                                // output to channel
-                                SendMessage(Globals.BuildEmbed(null, null, SongList, Globals.EmbedColors.LoggingEmbed));
+                                Logic.RemoveSongFromReactionRequest(arg1);
 
                             }
                         }
@@ -308,5 +234,59 @@ namespace WasIchHoerePlaylist.APIs
             });
             return Task.CompletedTask;
         }
+
+
+
+
+        #endregion
+
+
+
+
+
+        #region SendMessage Methods
+
+
+        /// <summary>
+        /// Sends one string to logging Channel, can do Embed if Color set.
+        /// </summary>
+        /// <param name="MyLogMessage"></param>
+        /// <param name="pEmbedColor"></param>
+        /// <returns></returns>
+        public static async Task<RestUserMessage> SendMessage(string MyLogMessage, Helper.DiscordHelper.EmbedColors pEmbedColor = Helper.DiscordHelper.EmbedColors.NoEmbed)
+        {
+            RestUserMessage RUM;
+            if (pEmbedColor == Helper.DiscordHelper.EmbedColors.NoEmbed)
+            {
+                RUM = await APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetTextChannel(Options.DISCORD_INTERNAL_CHANNEL).SendMessageAsync(MyLogMessage);
+            }
+            else
+            {
+                RUM = await SendMessage(Helper.DiscordHelper.BuildEmbed(null, MyLogMessage, null, pEmbedColor));
+            }
+            return RUM;
+        }
+
+
+        /// <summary>
+        /// Sends embed to logging Channel.
+        /// </summary>
+        /// <param name="pEmbed"></param>
+        /// <returns></returns>
+        public static async Task<RestUserMessage> SendMessage(Embed pEmbed)
+        {
+            RestUserMessage RUM;
+            RUM = await APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetTextChannel(Options.DISCORD_INTERNAL_CHANNEL).SendMessageAsync(embed: pEmbed);
+            return RUM;
+        }
+
+
+
+        #endregion
+    
+    
+    
+    
+    
     }
 }

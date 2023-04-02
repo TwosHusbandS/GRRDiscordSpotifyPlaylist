@@ -47,6 +47,9 @@ namespace WasIchHoerePlaylist.APIs
         }
 
 
+        #region Init And Auth
+
+
         /// <summary>
         /// Refreshes the authentication using the json from disk.
         /// </summary>
@@ -123,6 +126,11 @@ namespace WasIchHoerePlaylist.APIs
         }
 
 
+        #endregion
+
+
+
+        #region Playlist Get Songs
 
         /// <summary>
         /// Gets all PlayableItems from a Spotify Playlist
@@ -182,6 +190,171 @@ namespace WasIchHoerePlaylist.APIs
         }
 
 
+        #endregion
+
+
+        #region Playlist Add Songs
+
+
+        /// <summary>
+        /// Adds a List of Uris to the Playlist
+        /// </summary>
+        /// <param name="Uris"></param>
+        /// <returns></returns>
+        public static async Task AddToPlaylist(List<string> Uris)
+        {
+            try
+            {
+                PlaylistAddItemsRequest PAIR = new PlaylistAddItemsRequest(Uris);
+                await MySpotify.MySpotifyClient.Playlists.AddItems(Options.SPOTIFY_PLAYLIST_ID, PAIR);
+            }
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex);
+            }
+        }
+
+
+        /// <summary>
+        /// Adds a Single URI to the Playlist
+        /// </summary>
+        /// <param name="Uri"></param>
+        /// <returns></returns>
+        public static async Task AddToPlaylist(string Uri)
+        {
+            // Calls overloaded Method
+            List<string> UriList = new List<string>();
+            UriList.Add(Uri);
+            await AddToPlaylist(UriList);
+        }
+
+        #endregion
+
+
+
+        #region Playlist Remove Songs
+
+
+
+        /// <summary>
+        /// Removes a single URI from Playlist
+        /// </summary>
+        /// <param name="Uri"></param>
+        /// <returns></returns>
+        public static async Task RemoveFromPlaylist(string Uri)
+        {
+            // calls overloaded method
+            List<string> tmp = new List<string>();
+            tmp.Add(Uri);
+            await RemoveFromPlaylist(tmp);
+        }
+
+
+        /// <summary>
+        /// Removes list of FullTracks from Playlist
+        /// </summary>
+        /// <param name="FullTracks"></param>
+        /// <returns></returns>
+        public static async Task RemoveFromPlaylist(List<FullTrack> FullTracks)
+        {
+            // makes FullTracks into list of string, calls overloaded method
+            List<string> tmp = new List<string>();
+            for (int i = 0; i <= FullTracks.Count - 1; i++)
+            {
+                tmp.Add(FullTracks[i].Uri);
+            }
+            await RemoveFromPlaylist(tmp);
+        }
+
+
+        /// <summary>
+        /// Removes list of Uris from Playlist
+        /// </summary>
+        /// <param name="Uris"></param>
+        /// <returns></returns>
+        public static async Task RemoveFromPlaylist(List<string> Uris)
+        {
+            try
+            {
+                // define PlaylistRemoveitemsRequest and the Tracks property
+                PlaylistRemoveItemsRequest PRIR = new PlaylistRemoveItemsRequest();
+                PRIR.Tracks = new List<PlaylistRemoveItemsRequest.Item>();
+
+
+                foreach (string Uri in Uris)
+                {
+                    // define PlaylistRemoveItemsRequest Item and add to PlaylistRemoveItemRequest
+                    PlaylistRemoveItemsRequest.Item PRIRI = new PlaylistRemoveItemsRequest.Item();
+                    PRIRI.Uri = Uri;
+                    PRIR.Tracks.Add(PRIRI);
+                }
+
+                // call to api to remove
+                await MySpotifyClient.Playlists.RemoveItems(Options.SPOTIFY_PLAYLIST_ID, PRIR);
+            }
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex);
+            }
+        }
+
+        #endregion
+
+
+
+        #region GetTrackResponse
+
+        /// <summary>
+        /// Gets Information of FullTracks from List of Uris
+        /// </summary>
+        /// <param name="Uris"></param>
+        /// <returns></returns>
+        public static async Task<List<FullTrack>> GetTracksReponse(List<string> Uris)
+        {
+            List<FullTrack> FullTracks = new List<FullTrack>();
+            try
+            {
+                if (!Helper.ListHelper.CanContinueWithList(ref Uris))
+                {
+                    return FullTracks;
+                }
+
+                // Convert Uris to IDs
+                List<string> IDs = new List<string>();
+                for (int i = 0; i <= Uris.Count - 1; i++)
+                {
+                    string tmp = Helper.SpotifyHelper.GetTrackIdFromTrackUri(Uris[i]);
+                    IDs.Add(tmp);
+                }
+
+                // If  ID list is not empty / null etc.
+                if (Helper.ListHelper.CanContinueWithList(ref IDs))
+                {
+                    // request songs from spotify
+                    TracksRequest TRequest = new TracksRequest(IDs);
+                    TracksResponse TResponse = await MySpotifyClient.Tracks.GetSeveral(TRequest);
+                    if (TResponse.Tracks != null)
+                    {
+                        // return if not null
+                        return TResponse.Tracks;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex);
+            }
+            return FullTracks;
+        }
+
+
+        #endregion
+
+
+
+
+
+
         /// <summary>
         /// Removing the oldest songs to make sure the Playlist keeps at its maximum song list
         /// </summary>
@@ -223,68 +396,6 @@ namespace WasIchHoerePlaylist.APIs
 
 
 
-        /// <summary>
-        /// Removes list of FullTracks from Playlist
-        /// </summary>
-        /// <param name="FullTracks"></param>
-        /// <returns></returns>
-        public static async Task RemoveFromPlaylist(List<FullTrack> FullTracks)
-        {
-            // makes FullTracks into list of string, calls overloaded method
-            List<string> tmp = new List<string>();
-            for (int i = 0; i <= FullTracks.Count - 1; i++)
-            {
-                tmp.Add(FullTracks[i].Uri);
-            }
-            await RemoveFromPlaylist(tmp);
-        }
-
-
-        /// <summary>
-        /// Removes a single URI from Playlist
-        /// </summary>
-        /// <param name="Uri"></param>
-        /// <returns></returns>
-        public static async Task RemoveFromPlaylist(string Uri)
-        {
-            // calls overloaded method
-            List<string> tmp = new List<string>();
-            tmp.Add(Uri);
-            await RemoveFromPlaylist(tmp);
-        }
-
-
-        /// <summary>
-        /// Removes list of Uris from Playlist
-        /// </summary>
-        /// <param name="Uris"></param>
-        /// <returns></returns>
-        public static async Task RemoveFromPlaylist(List<string> Uris)
-        {
-            try
-            {
-                // define PlaylistRemoveitemsRequest and the Tracks property
-                PlaylistRemoveItemsRequest PRIR = new PlaylistRemoveItemsRequest();
-                PRIR.Tracks = new List<PlaylistRemoveItemsRequest.Item>();
-
-
-                foreach (string Uri in Uris)
-                {
-                    // define PlaylistRemoveItemsRequest Item and add to PlaylistRemoveItemRequest
-                    PlaylistRemoveItemsRequest.Item PRIRI = new PlaylistRemoveItemsRequest.Item();
-                    PRIRI.Uri = Uri;
-                    PRIR.Tracks.Add(PRIRI);
-                }
-
-                // call to api to remove
-                await MySpotifyClient.Playlists.RemoveItems(Options.SPOTIFY_PLAYLIST_ID, PRIR);
-            }
-            catch (Exception ex)
-            {
-                Helper.Logger.Log(ex);
-            }
-        }
-
 
 
         /// <summary>
@@ -318,84 +429,6 @@ namespace WasIchHoerePlaylist.APIs
             return "";
         }
 
-
-        /// <summary>
-        /// Gets Information of FullTracks from List of Uris
-        /// </summary>
-        /// <param name="Uris"></param>
-        /// <returns></returns>
-        public static async Task<List<FullTrack>> GetTracksReponse(List<string> Uris)
-        {
-            List<FullTrack> FullTracks = new List<FullTrack>();
-            try
-            {
-                Uris = Globals.RemoveNullEmptyWhitespaceDuplicateStringList(Uris);
-
-                if (Uris.Count == 0)
-                {
-                    return FullTracks;
-                }
-
-                // Convert Uris to IDs
-                List<string> IDs = new List<string>();
-                for (int i = 0; i <= Uris.Count - 1; i++)
-                {
-                    string tmp = Globals.GetTrackIdFromTrackUri(Uris[i]);
-                    IDs.Add(tmp);
-                }
-
-                // If  ID list is not empty / null etc.
-                if (Globals.CanContinueWithList(ref IDs))
-                {
-                    // request songs from spotify
-                    TracksRequest TRequest = new TracksRequest(IDs);
-                    TracksResponse TResponse = await MySpotifyClient.Tracks.GetSeveral(TRequest);
-                    if (TResponse.Tracks != null)
-                    {
-                        // return if not null
-                        return TResponse.Tracks;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Helper.Logger.Log(ex);
-            }
-            return FullTracks;
-        }
-
-
-        /// <summary>
-        /// Adds a List of Uris to the Playlist
-        /// </summary>
-        /// <param name="Uris"></param>
-        /// <returns></returns>
-        public static async Task AddToPlaylist(List<string> Uris)
-        {
-            try
-            {
-                PlaylistAddItemsRequest PAIR = new PlaylistAddItemsRequest(Uris);
-                await MySpotify.MySpotifyClient.Playlists.AddItems(Options.SPOTIFY_PLAYLIST_ID, PAIR);
-            }
-            catch (Exception ex)
-            {
-                Helper.Logger.Log(ex);
-            }
-        }
-
-
-        /// <summary>
-        /// Adds a Single URI to the Playlist
-        /// </summary>
-        /// <param name="Uri"></param>
-        /// <returns></returns>
-        public static async Task AddToPlaylist(string Uri)
-        {
-            // Calls overloaded Method
-            List<string> UriList = new List<string>();
-            UriList.Add(Uri);
-            await AddToPlaylist(UriList);
-        }
 
 
         /// <summary>
@@ -435,7 +468,7 @@ namespace WasIchHoerePlaylist.APIs
                 for (int i = 0; i <= mySpotifySearchReturns.Count - 1; i++)
                 {
                     // Get String from Fulltrack we can compare to
-                    string SpotifyResultComparisonString = Globals.GetTrackStringSearch(mySpotifySearchReturns[i]);
+                    string SpotifyResultComparisonString = Helper.SpotifyHelper.GetTrackSearchString(mySpotifySearchReturns[i]);
 
                     // get comparison score
                     int currComparison = Helper.FileHandling.getLevenshteinDistance(SpotifyResultComparisonString, SearchString);
@@ -470,7 +503,7 @@ namespace WasIchHoerePlaylist.APIs
                             Descripton = Descripton + "\nClosestMatch: '" + MyClosestString + "'";
                             Descripton = Descripton + "\nLevenshtein Comparison: '" + bestComparison + "'";
                             Descripton = Descripton + "\nLink of that: '" + MyClosestLink + "'";
-                            APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, Descripton, null, Globals.EmbedColors.LoggingEmbed));
+                            APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, Descripton, null, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
                         }
 
                     }
@@ -520,9 +553,6 @@ namespace WasIchHoerePlaylist.APIs
             return false;
         }
 
-
-
-     
 
     }
 }

@@ -238,7 +238,7 @@ namespace WasIchHoerePlaylist
         /// Generates a string to show all (non sensitive) Settings.
         /// </summary>
         /// <returns></returns>
-        public static string CommandListOutput()
+        public static string SettingsListCommandOutput()
         {
             string logstring = "";
             logstring += "SPOTIFY_PLAYLIST_ID='" + Options.SPOTIFY_PLAYLIST_ID + "'";

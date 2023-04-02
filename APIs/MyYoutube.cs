@@ -72,9 +72,6 @@ namespace WasIchHoerePlaylist.APIs
                     // split description into array
                     string[] dscrptArr = dscrpt.Split('\n');
 
-
-
-
                     // if description has a few lines
                     if (dscrptArr.Length >= 4)
                     {

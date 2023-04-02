@@ -11,16 +11,26 @@ namespace WasIchHoerePlaylist.CommandHandling
 {
     internal partial class MyCommandHandling
     {
+        /// <summary>
+        /// Handle Help Command
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="UserIsAdmin"></param>
+        /// <returns></returns>
         static Task HandleCommand_Help(SocketSlashCommand command, bool UserIsAdmin)
         {
             List<KeyValuePair<string, string>> MyList = new List<KeyValuePair<string, string>>();
             MyList.Add(new KeyValuePair<string, string>("Showing all Commands", GetHelpCommandOutput()));
-            command.RespondAsync(embed: Globals.BuildEmbed(command, null, MyList, Globals.EmbedColors.NormalEmbed));
+            command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, null, MyList, Helper.DiscordHelper.EmbedColors.NormalEmbed));
 
             return Task.CompletedTask;
         }
 
 
+        /// <summary>
+        /// Generate Output for the Help Command
+        /// </summary>
+        /// <returns></returns>
         static string GetHelpCommandOutput()
         {
             string HelpOutput = "";

@@ -12,6 +12,12 @@ namespace WasIchHoerePlaylist.CommandHandling
 {
     internal partial class MyCommandHandling
     {
+        /// <summary>
+        /// Handle Settings Command
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="UserIsAdmin"></param>
+        /// <returns></returns>
         static Task HandleCommand_Settings(SocketSlashCommand command, bool UserIsAdmin)
         {
             if (!UserIsAdmin)
@@ -66,26 +72,38 @@ namespace WasIchHoerePlaylist.CommandHandling
             catch (Exception ex)
             {
                 Helper.Logger.Log(ex);
-                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error processing Settings command", null, Globals.EmbedColors.ErrorEmbed));
+                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error processing Settings command", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
             }
             return Task.CompletedTask;
 
         }
 
+        /// <summary>
+        /// Handle Settings Show Command
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
         static async Task HandleSettings_Show(SocketSlashCommand command)
         {
+            // print all non-sensitive settings to channel
             List<KeyValuePair<string, string>> myList = new List<KeyValuePair<string, string>>();
-            myList.Add(new KeyValuePair<string, string>("Showing all Settings", Options.CommandListOutput()));
-            command.RespondAsync(embed: Globals.BuildEmbed(command, null, myList, Globals.EmbedColors.NormalEmbed));
+            myList.Add(new KeyValuePair<string, string>("Showing all Settings", Options.SettingsListCommandOutput()));
+            command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, null, myList, Helper.DiscordHelper.EmbedColors.NormalEmbed));
         }
 
+        /// <summary>
+        /// Handle Settings ReRead Command
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
         static async Task HandleSettings_ReRead(SocketSlashCommand command)
         {
+            // re-read Settings from File again
             Options.ReadFromFile();
             List<KeyValuePair<string, string>> myList = new List<KeyValuePair<string, string>>();
             string Description = "Sucessfully Re-Read all Settings from file.\nNew Settings below:\n\n";
-            myList.Add(new KeyValuePair<string, string>("Showing all (new) Settings", Options.CommandListOutput()));
-            command.RespondAsync(embed: Globals.BuildEmbed(command, Description, myList, Globals.EmbedColors.NormalEmbed));
+            myList.Add(new KeyValuePair<string, string>("Showing all (new) Settings", Options.SettingsListCommandOutput()));
+            command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, Description, myList, Helper.DiscordHelper.EmbedColors.NormalEmbed));
         }
 
         static Task HandleSettings_Limit(SocketSlashCommand command, List<KeyValuePair<string, object>> Parameter)
@@ -95,28 +113,39 @@ namespace WasIchHoerePlaylist.CommandHandling
                 int Number = 0;
                 if (Int32.TryParse(Parameter[1].Value.ToString(), out Number))
                 {
-                    string OptionName = "";
-                    if (Parameter[0].Value.ToString() == "1")
+                    // parsing number, making sure its valid
+                    if (0 < Number && Number < 501)
                     {
-                        Options.SPOTIFY_PLAYLIST_NUMBER_OF_SONGS = Number;
-                        OptionName = "playlist_amount_of_songs";
+                        string OptionName = "";
+                        if (Parameter[0].Value.ToString() == "1")
+                        {
+                            Options.SPOTIFY_PLAYLIST_NUMBER_OF_SONGS = Number;
+                            APIs.MySpotify.KeepSongLimit();
+                            OptionName = "playlist_amount_of_songs";
+                        }
+                        else if (Parameter[0].Value.ToString() == "2")
+                        {
+                            Options.USER_DAILY_LIMIT = Number;
+                            OptionName = "user_daily_limit";
+                        }
+
+                        // actully writing to file and outputting
+                        Options.WriteToFile();
+                        command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Changed '" + OptionName + "' to: '" + Number + "'", null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
                     }
-                    else if (Parameter[0].Value.ToString() == "2")
+                    else
                     {
-                        Options.USER_DAILY_LIMIT = Number;
-                        OptionName = "user_daily_limit";
+                        command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing Limit Setting (Number not above zero)", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                     }
-                    Options.WriteToFile();
-                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Changed '" + OptionName + "' to: '" + Number + "'", null, Globals.EmbedColors.NormalEmbed));
                 }
                 else
                 {
-                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Limit Setting (TryParse)", null, Globals.EmbedColors.ErrorEmbed));
+                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing Limit Setting (TryParse)", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 }
             }
             catch (Exception ex)
             {
-                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Limit Setting", null, Globals.EmbedColors.ErrorEmbed));
+                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing Limit Setting", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 Helper.Logger.Log(ex);
             }
 
@@ -124,6 +153,13 @@ namespace WasIchHoerePlaylist.CommandHandling
         }
 
 
+
+        /// <summary>
+        /// Handle Settings Channel Command
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="Parameter"></param>
+        /// <returns></returns>
         static Task HandleSettingsCommand_Channel(SocketSlashCommand command, List<KeyValuePair<string, object>> Parameter)
         {
             try
@@ -141,25 +177,35 @@ namespace WasIchHoerePlaylist.CommandHandling
                     Options.DISCORD_INTERNAL_CHANNEL = channel.Id;
                     OptionName = "internal-channel";
                 }
+
+                // actully writing to file and outputting
                 Options.WriteToFile();
-                command.RespondAsync(embed: Globals.BuildEmbed(command, "Changed '" + OptionName + "' to: '#" + channel.Name + "'", null, Globals.EmbedColors.NormalEmbed));
+                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Changed '" + OptionName + "' to: '#" + channel.Name + "'", null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
             }
             catch (Exception ex)
             {
-                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Channel Setting", null, Globals.EmbedColors.ErrorEmbed));
+                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing Channel Setting", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 Helper.Logger.Log(ex);
             }
             return Task.CompletedTask;
         }
 
+
+        /// <summary>
+        /// Handle Settings Color Command 
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="Parameter"></param>
+        /// <returns></returns>
         static Task HandleSettingsCommand_Color(SocketSlashCommand command, List<KeyValuePair<string, object>> Parameter)
         {
             try
             {
+                // Trying to parse color
                 System.Drawing.Color newColor = default(System.Drawing.Color);
-
                 if (Options.TryParseColor(Parameter[1].Value.ToString(), out newColor))
                 {
+                    // preparing output and changing the setting
                     string OptionName = "";
                     if (Parameter[0].Value == "1")
                     {
@@ -176,36 +222,43 @@ namespace WasIchHoerePlaylist.CommandHandling
                         Options.ERROR_COLOR = newColor;
                         OptionName = "error Embeds";
                     }
+
+                    // writing to file and outputting
                     Options.WriteToFile();
-                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Changed color of '" + OptionName + "' to: '" + Options.ColorToHex(newColor) + "'", null, Globals.EmbedColors.NormalEmbed));
+                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Changed color of '" + OptionName + "' to: '" + Options.ColorToHex(newColor) + "'", null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
                 }
                 else
                 {
-                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Color Setting (Parsing color failed)", null, Globals.EmbedColors.ErrorEmbed));
+                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing Color Setting (Parsing color failed)", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 }
             }
             catch (Exception ex)
             {
-                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Color Setting", null, Globals.EmbedColors.ErrorEmbed));
+                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing Color Setting", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 Helper.Logger.Log(ex);
             }
             return Task.CompletedTask;
         }
 
 
+        /// <summary>
+        /// Handle Settings LogLevel Command
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="Parameter"></param>
+        /// <returns></returns>
         static Task HandleSettingsCommand_LogLevel(SocketSlashCommand command, List<KeyValuePair<string, object>> Parameter)
         {
             try
             {
                 int Number = -1;
-                bool ParseResult = Int32.TryParse(Parameter[1].Value.ToString(), out Number);
-
-                if (ParseResult)
+                if (Int32.TryParse(Parameter[1].Value.ToString(), out Number))
                 {
-
                     string OptionName = "";
+                    // number between 1 and 3
                     if (4 > Number && Number > 0)
                     {
+                        // Change setting and prepare output
                         if (Parameter[0].Value.ToString() == "1")
                         {
                             Options.LOG_LEVEL_DISCORD = Number;
@@ -216,8 +269,8 @@ namespace WasIchHoerePlaylist.CommandHandling
                             Options.LOG_LEVEL_FILE = Number;
                             OptionName = "File-Logging-Level";
                         }
-                        Options.WriteToFile();
 
+                        // output  stuff
                         string OptionValue = "";
                         switch (Number)
                         {
@@ -232,26 +285,35 @@ namespace WasIchHoerePlaylist.CommandHandling
                                 break;
                         }
 
-                        command.RespondAsync(embed: Globals.BuildEmbed(command, "Changed '" + OptionName + "' to: '" + OptionValue + "'", null, Globals.EmbedColors.NormalEmbed));
+                        // write to file and output
+                        Options.WriteToFile();
+                        command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Changed '" + OptionName + "' to: '" + OptionValue + "'", null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
                     }
                     else
                     {
-                        command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Loglevel Setting (Int not between 1 and 3)", null, Globals.EmbedColors.ErrorEmbed));
+                        command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing Loglevel Setting (Int not between 1 and 3)", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                     }
                 }
                 else
                 {
-                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Loglevel Setting (Parse Int failed)", null, Globals.EmbedColors.ErrorEmbed));
+                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing Loglevel Setting (Parse Int failed)", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 }
             }
             catch (Exception ex)
             {
-                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Loglevel Setting", null, Globals.EmbedColors.ErrorEmbed));
+                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing Loglevel Setting", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 Helper.Logger.Log(ex);
             }
             return Task.CompletedTask;
         }
 
+
+        /// <summary>
+        /// Handle Settings Playlist Command
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="Parameter"></param>
+        /// <returns></returns>
         static async Task HandleSettingsCommand_Playlist(SocketSlashCommand command, List<KeyValuePair<string, object>> Parameter)
         {
             try
@@ -263,6 +325,7 @@ namespace WasIchHoerePlaylist.CommandHandling
 
                 string NewSpotifyPlaylistID = "";
 
+                // Checking if Regex mathces and writing new ID into the variable
                 if (MySpotifyMatch.Success)
                 {
                     if (MySpotifyMatch.Groups.Count >= 3)
@@ -272,121 +335,151 @@ namespace WasIchHoerePlaylist.CommandHandling
                 }
                 else
                 {
-                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing spotify_playlist Setting (Regex doesnt hit)", null, Globals.EmbedColors.ErrorEmbed));
+                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing spotify_playlist Setting (Regex doesnt hit)", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                     return;
                 }
 
+
+                // making sure we got a regex match earlier
                 if (!String.IsNullOrEmpty(NewSpotifyPlaylistID))
                 {
+                    // if its the same playlist
                     if (NewSpotifyPlaylistID == Options.SPOTIFY_PLAYLIST_ID)
                     {
-                        command.RespondAsync(embed: Globals.BuildEmbed(command, "Thats the same fucking Playlist you dumbfuck.", null, Globals.EmbedColors.ErrorEmbed));
+                        command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Thats the same fucking Playlist you dumbfuck.", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                         return;
                     }
 
-                    List<FullTrack> FullTracks = new List<FullTrack>();
+
+                    List<FullTrack> OldPlaylistSongs = new List<FullTrack>();
+                    // If we want to port over old Songs, save them in existing empty list
+                    if (Parameter[1].Value.ToString() == "1")
+                    {
+                        OldPlaylistSongs = await APIs.MySpotify.GetAllPlaylistFullTracks();
+                    }
+
+
+                    Options.SPOTIFY_PLAYLIST_ID = NewSpotifyPlaylistID;
                     string OutputAddition = "";
 
                     if (Parameter[1].Value.ToString() == "1")
                     {
-                        FullTracks = await APIs.MySpotify.GetAllPlaylistFullTracks();
-                    }
+                        // add old playlist songs to new playlist
 
-                    Options.SPOTIFY_PLAYLIST_ID = NewSpotifyPlaylistID;
-
-                    if (Parameter[1].Value.ToString() == "1")
-                    {
-                        // add to new playlist
                         List<string> Uris = new List<string>();
-                        for (int i = 0; i <= FullTracks.Count - 1; i++)
+                        for (int i = 0; i <= OldPlaylistSongs.Count - 1; i++)
                         {
-                            Uris.Add(FullTracks[i].Uri);
+                            Uris.Add(OldPlaylistSongs[i].Uri);
                         }
-                        await APIs.MySpotify.AddToPlaylist(Uris);
-                        OutputAddition = ", and copied over all (" + FullTracks.Count + ") old Songs.";
+                        // convert FullTrack to UriList, make call Api, add to output
+                        APIs.MySpotify.AddToPlaylist(Uris);
+                        OutputAddition = ", and copied over all (" + OldPlaylistSongs.Count + ") old Songs.";
                     }
 
+                    // Write to settings file and output
                     Options.WriteToFile();
-
-                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Changed 'Playlist_ID' to: '" + NewSpotifyPlaylistID + "'" + OutputAddition, null, Globals.EmbedColors.NormalEmbed));
+                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Changed 'Playlist_ID' to: '" + NewSpotifyPlaylistID + "'" + OutputAddition, null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
                 }
                 else
                 {
-                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing spotify_playlist Setting (NewSpotifyPlaylistID is null)", null, Globals.EmbedColors.ErrorEmbed));
+                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing spotify_playlist Setting (NewSpotifyPlaylistID is null)", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                     return;
                 }
             }
             catch (Exception ex)
             {
-                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing spotify_playlist Setting", null, Globals.EmbedColors.ErrorEmbed));
+                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing spotify_playlist Setting", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 Helper.Logger.Log(ex);
             }
         }
 
 
+        /// <summary>
+        /// Handle Settings Max-Levenshtein-Distance
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="Parameter"></param>
+        /// <returns></returns>
         static Task HandleSettingsCommand_Levenshtein(SocketSlashCommand command, List<KeyValuePair<string, object>> Parameter)
         {
             try
             {
                 int value = -1;
-                bool ParseResult = Int32.TryParse(Parameter[0].Value.ToString(), out value);
-
-                if (ParseResult)
+                // See if parse was sucessfull
+                if (Int32.TryParse(Parameter[0].Value.ToString(), out value))
                 {
+                    // if value is above null
                     if (value > 0)
                     {
+                        // change setting, write to file, output
                         Options.MAX_LEVENSHTEIN_DISTANCE = value;
                         Options.WriteToFile();
-                        command.RespondAsync(embed: Globals.BuildEmbed(command, "Changed 'MAX_LEVENSHTEIN_DISTANCE' to: '" + value + "'", null, Globals.EmbedColors.NormalEmbed));
+                        command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Changed 'MAX_LEVENSHTEIN_DISTANCE' to: '" + value + "'", null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
                     }
                     else
                     {
-                        command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Levenshtein Setting (Value is 0 or less)", null, Globals.EmbedColors.ErrorEmbed));
+                        command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing Levenshtein Setting (Value is 0 or less)", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                     }
                 }
                 else
                 {
-                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Levenshtein Setting (TryParse shit the bed)", null, Globals.EmbedColors.ErrorEmbed));
+                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing Levenshtein Setting (TryParse shit the bed)", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 }
             }
             catch (Exception ex)
             {
-                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Levenshtein Setting", null, Globals.EmbedColors.ErrorEmbed));
+                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing Levenshtein Setting", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 Helper.Logger.Log(ex);
             }
             return Task.CompletedTask;
         }
 
 
+        /// <summary>
+        /// Handle Settings DiscordGuildId Command
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="Parameter"></param>
+        /// <returns></returns>
         static Task HandleSettingsCommand_DiscordGuildId(SocketSlashCommand command, List<KeyValuePair<string, object>> Parameter)
         {
             try
             {
+                // Parsing input
                 string input = Parameter[0].Value.ToString();
                 ulong GuildID = 0;
                 if (ulong.TryParse(input, out GuildID))
                 {
+                    // changing setting, writing to file, add output
                     Options.DISCORD_GUILD_ID = GuildID;
                     Options.WriteToFile();
-                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Changed 'Discord_Guild_ID' to: '" + GuildID + "'", null, Globals.EmbedColors.NormalEmbed));
+                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Changed 'Discord_Guild_ID' to: '" + GuildID + "'", null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
                 }
                 else
                 {
-                    command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Discord Guild ID Setting (TryParse false)", null, Globals.EmbedColors.ErrorEmbed));
+                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing Discord Guild ID Setting (TryParse false)", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 }
             }
             catch (Exception ex)
             {
-                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing Discord Guild ID Setting", null, Globals.EmbedColors.ErrorEmbed));
+                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing Discord Guild ID Setting", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 Helper.Logger.Log(ex);
             }
             return Task.CompletedTask;
         }
 
+
+        /// <summary>
+        /// Handle Settings ShowACtivityInternal Command
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="Parameter"></param>
+        /// <returns></returns>
         static Task HandleSettingsCommand_ShowActivityInternal(SocketSlashCommand command, List<KeyValuePair<string, object>> Parameter)
         {
             try
             {
+                // just normal shit, pretty basic
                 if (Parameter[0].Value.ToString() == "1")
                 {
                     Options.SHOW_ACTIVITY_INTERNAL = true;
@@ -396,11 +489,11 @@ namespace WasIchHoerePlaylist.CommandHandling
                     Options.SHOW_ACTIVITY_INTERNAL = false;
                 }
                 Options.WriteToFile();
-                command.RespondAsync(embed: Globals.BuildEmbed(command, "Changed 'show_activity_internally' to: '" + Options.SHOW_ACTIVITY_INTERNAL.ToString() + "'", null, Globals.EmbedColors.NormalEmbed));
+                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Changed 'show_activity_internally' to: '" + Options.SHOW_ACTIVITY_INTERNAL.ToString() + "'", null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
             }
             catch (Exception ex)
             {
-                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error changing show_activity_internal Setting", null, Globals.EmbedColors.ErrorEmbed));
+                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error changing show_activity_internal Setting", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 Helper.Logger.Log(ex);
             }
 

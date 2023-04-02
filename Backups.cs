@@ -12,6 +12,12 @@ namespace WasIchHoerePlaylist
 {
     internal class Backups
     {
+
+        /// <summary>
+        /// List all Backups
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
         public static Task List(SocketSlashCommand command = null)
         {
             try
@@ -20,26 +26,34 @@ namespace WasIchHoerePlaylist
                 string tmp = "";
                 string[] BackupFiles = Helper.FileHandling.GetFilesFromFolder(Globals.BackupPlaylistPath);
                 List<string> BackupNames = new List<string>();
+
+                // Loop through all BackupFiles
                 foreach (string BackupFile in BackupFiles)
                 {
+                    // add the Name to List
                     string tmp2 = BackupFile.Substring(Globals.BackupPlaylistPath.Length + 1);
                     BackupNames.Add(tmp2);
                 }
 
+                // if we have backup
                 if (BackupNames.Count > 0)
                 {
-                    foreach (string BackupName in BackupNames)
+                    // Loop through BackupNames
+                    for (int i = 0; i <= BackupNames.Count - 1; i++)
                     {
-                        tmp = tmp + "'" + BackupName + "'" + "\n";
+                        // add to output
+                        tmp = tmp + "'" + BackupNames[i] + "'" + "\n";
                     }
+
+                    // output
                     tmp.TrimEnd('\n');
                     MyList.Add(new KeyValuePair<string, string>("Backups:", tmp));
-                    Output(Globals.BuildEmbed(command, null, MyList, Globals.EmbedColors.NormalEmbed), command);
+                    Output(Helper.DiscordHelper.BuildEmbed(command, null, MyList, Helper.DiscordHelper.EmbedColors.NormalEmbed), command);
                 }
                 else
                 {
                     MyList.Add(new KeyValuePair<string, string>("Error", "No Backups available"));
-                    Output(Globals.BuildEmbed(command, null, MyList, Globals.EmbedColors.ErrorEmbed), command);
+                    Output(Helper.DiscordHelper.BuildEmbed(command, null, MyList, Helper.DiscordHelper.EmbedColors.ErrorEmbed), command);
                 }
             }
             catch (Exception ex)
@@ -50,6 +64,13 @@ namespace WasIchHoerePlaylist
         }
 
 
+
+        /// <summary>
+        /// Create Backup
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="pBackupName"></param>
+        /// <returns></returns>
         public static async Task Create(SocketSlashCommand command = null, string pBackupName = "")
         {
             try
@@ -57,17 +78,20 @@ namespace WasIchHoerePlaylist
                 string BackupName = "";
                 if (!GetBackupName(out BackupName, command, pBackupName))
                 {
-                    Output(Globals.BuildEmbed(command, "Error creating Backup. Name is null or empty.", null, Globals.EmbedColors.ErrorEmbed), command);
+                    Output(Helper.DiscordHelper.BuildEmbed(command, "Error creating Backup. Name is null or empty.", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed), command);
                     return;
                 }
+                string BackupFilePath = Helper.FileHandling.PathCombine(Globals.BackupPlaylistPath, BackupName);
+                // generate FilePath
 
-                string FileName = Helper.FileHandling.PathCombine(Globals.BackupPlaylistPath, BackupName);
-
-                while (Helper.FileHandling.doesFileExist(FileName))
+                // if it exists
+                while (Helper.FileHandling.doesFileExist(BackupFilePath))
                 {
-                    FileName = FileName + " (new)";
+                    // keep adding " (new)" to it
+                    BackupFilePath = BackupFilePath + " (new)";
                 }
 
+                // Loop through all Tracks in Playlist, add Uri to List<string>
                 List<FullTrack> FullTracks = await APIs.MySpotify.GetAllPlaylistFullTracks();
                 List<string> Uris = new List<string>();
                 for (int i = 0; i <= FullTracks.Count - 1; i++)
@@ -75,135 +99,174 @@ namespace WasIchHoerePlaylist
                     Uris.Add(FullTracks[i].Uri);
                 }
 
-                Helper.FileHandling.WriteStringToFileOverwrite(FileName, Uris.ToArray());
+                // write to file
+                Helper.FileHandling.WriteStringToFileOverwrite(BackupFilePath, Uris.ToArray());
 
-                Output(Globals.BuildEmbed(command, "Created Backup named: '" + BackupName.ToString() + "'.", null, Globals.EmbedColors.NormalEmbed), command);
+                // output
+                Output(Helper.DiscordHelper.BuildEmbed(command, "Created Backup named: '" + BackupName.ToString() + "'.", null, Helper.DiscordHelper.EmbedColors.NormalEmbed), command);
             }
             catch (Exception ex)
             {
-                Output(Globals.BuildEmbed(command, "Error creating Backup", null, Globals.EmbedColors.ErrorEmbed), command);
+                Output(Helper.DiscordHelper.BuildEmbed(command, "Error creating Backup", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed), command);
                 Helper.Logger.Log(ex);
             }
         }
 
 
+        /// <summary>
+        /// Apply a Backup
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="pBackupName"></param>
+        /// <returns></returns>
         public static async Task Apply(SocketSlashCommand command = null, string pBackupName = "")
         {
             try
             {
+                // generating FilePath etc.
                 string BackupName = "";
                 if (!GetBackupName(out BackupName, command, pBackupName))
                 {
-                    Output(Globals.BuildEmbed(command, "Error applying Backup. Name is null or empty.", null, Globals.EmbedColors.ErrorEmbed), command);
+                    Output(Helper.DiscordHelper.BuildEmbed(command, "Error applying Backup. Name is null or empty.", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed), command);
                     return;
                 }
+                string BackupFilePath = Helper.FileHandling.PathCombine(Globals.BackupPlaylistPath, BackupName);
 
-                string FileName = Helper.FileHandling.PathCombine(Globals.BackupPlaylistPath, BackupName);
-
-                if (Helper.FileHandling.doesFileExist(FileName))
+                // if it exists
+                if (Helper.FileHandling.doesFileExist(BackupFilePath))
                 {
+                    // make playlist empty
                     List<FullTrack> FullTracks = await APIs.MySpotify.GetAllPlaylistFullTracks();
                     await APIs.MySpotify.RemoveFromPlaylist(FullTracks);
 
-                    string[] BackupUris = Helper.FileHandling.ReadFileEachLine(FileName);
+                    // fill with Uris from BackupFilePath
+                    string[] BackupUris = Helper.FileHandling.ReadFileEachLine(BackupFilePath);
                     await APIs.MySpotify.AddToPlaylist(BackupUris.ToList<string>());
 
-                    Output(Globals.BuildEmbed(command, "Applied Backup named: '" + BackupName.ToString() + "'.", null, Globals.EmbedColors.NormalEmbed), command);
+                    // output
+                    Output(Helper.DiscordHelper.BuildEmbed(command, "Applied Backup named: '" + BackupName.ToString() + "'.", null, Helper.DiscordHelper.EmbedColors.NormalEmbed), command);
                 }
                 else
                 {
-                    Output(Globals.BuildEmbed(command, "Backup named: '" + BackupName.ToString() + "' does not exist.", null, Globals.EmbedColors.ErrorEmbed), command);
+                    Output(Helper.DiscordHelper.BuildEmbed(command, "Backup named: '" + BackupName.ToString() + "' does not exist.", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed), command);
                 }
-                Output(Globals.BuildEmbed(command, "Error appying Backup.", null, Globals.EmbedColors.ErrorEmbed), command);
+                Output(Helper.DiscordHelper.BuildEmbed(command, "Error appying Backup.", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed), command);
             }
             catch (Exception ex)
             {
-                Output(Globals.BuildEmbed(command, "Error appying Backup", null, Globals.EmbedColors.ErrorEmbed), command);
+                Output(Helper.DiscordHelper.BuildEmbed(command, "Error appying Backup", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed), command);
                 Helper.Logger.Log(ex);
             }
             return;
         }
 
 
+        /// <summary>
+        /// Deletes a specific Backup
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="pBackupName"></param>
+        /// <returns></returns>
         public static Task Delete(SocketSlashCommand command = null, string pBackupName = "")
         {
             try
             {
+                // Get BackupName, and build BackupFilePath
                 string BackupName = "";
                 if (!GetBackupName(out BackupName, command, pBackupName))
                 {
-                    Output(Globals.BuildEmbed(command, "Error deleting Backup. Name is null or empty.", null, Globals.EmbedColors.ErrorEmbed), command);
+                    Output(Helper.DiscordHelper.BuildEmbed(command, "Error deleting Backup. Name is null or empty.", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed), command);
                     return Task.CompletedTask;
                 }
+                string BackupFilePath = Helper.FileHandling.PathCombine(Globals.BackupPlaylistPath, BackupName);
 
-                string Path = Helper.FileHandling.PathCombine(Globals.BackupPlaylistPath, BackupName);
-                if (Helper.FileHandling.doesFileExist(Path))
+                // if it exists
+                if (Helper.FileHandling.doesFileExist(BackupFilePath))
                 {
-                    Helper.FileHandling.deleteFile(Path);
-                    Output(Globals.BuildEmbed(command, "Deleted Backup named: '" + BackupName + "'.", null, Globals.EmbedColors.NormalEmbed), command);
+                    // delete and output
+                    Helper.FileHandling.deleteFile(BackupFilePath);
+                    Output(Helper.DiscordHelper.BuildEmbed(command, "Deleted Backup named: '" + BackupName + "'.", null, Helper.DiscordHelper.EmbedColors.NormalEmbed), command);
                 }
                 else
                 {
-                    Output(Globals.BuildEmbed(command, "No Backup named: '" + BackupName + "' found.", null, Globals.EmbedColors.ErrorEmbed), command);
+                    Output(Helper.DiscordHelper.BuildEmbed(command, "No Backup named: '" + BackupName + "' found.", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed), command);
                 }
             }
             catch (Exception ex)
             {
-                Output(Globals.BuildEmbed(command, "Error deleting Backup", null, Globals.EmbedColors.ErrorEmbed), command);
+                Output(Helper.DiscordHelper.BuildEmbed(command, "Error deleting Backup", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed), command);
                 Helper.Logger.Log(ex);
             }
             return Task.CompletedTask;
         }
 
 
+
+        /// <summary>
+        /// Gets called at midnight
+        /// </summary>
+        /// <returns></returns>
         public static Task AutoCreate()
         {
             try
             {
+                // Gets all Files in BackupPath
                 string[] BackupFiles = Helper.FileHandling.GetFilesFromFolder(Globals.BackupPlaylistPath);
                 string BackupRegexPattern = @"\d{4}_\d{2}_\d{2}_autobackup";
-                //foreach (Match MySpotifyMatch in MySpotifyRegex.Matches(Content))
-                //{
-                //if (MySpotifyMatch.Success)
-
-                List<string> BackupNames = new List<string>();
+                List<string> AutoBackupNames = new List<string>();
+                
                 foreach (string BackupFile in BackupFiles)
                 {
-                    string tmp2 = BackupFile.Substring(Globals.BackupPlaylistPath.Length + 1);
-                    Match m = Regex.Match(tmp2, BackupRegexPattern);
+                    string BackupFileName = BackupFile.Substring(Globals.BackupPlaylistPath.Length + 1);
+                    Match m = Regex.Match(BackupFileName, BackupRegexPattern);
                     if (m.Success)
                     {
-                        BackupNames.Add(tmp2);
+                        // if it matches regex
+                        // add to AutoBackupNames
+                        AutoBackupNames.Add(BackupFileName);
                     }
                 }
 
-                BackupNames.Sort();
-                BackupNames.Reverse();
+                // Sort and Revers list
+                AutoBackupNames.Sort();
+                AutoBackupNames.Reverse();
+
 
                 // if we have at least 4 backups
-                if (BackupNames.Count > 3)
+                if (AutoBackupNames.Count > 3)
                 {
                     // start at index 3, so 4rth backup
-                    for (int i = 3; i < BackupNames.Count; i++)
+                    for (int i = 3; i < AutoBackupNames.Count; i++)
                     {
-                        string FileName = Helper.FileHandling.PathCombine(Globals.BackupPlaylistPath, BackupNames[i]);
-                        APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, "Deleted old backup: '" + BackupNames[i] + "' automatically.", null, Globals.EmbedColors.LoggingEmbed));
+                        // build FileName
+                        string FileName = Helper.FileHandling.PathCombine(Globals.BackupPlaylistPath, AutoBackupNames[i]);
+                        
+                        // delete file
                         Helper.FileHandling.deleteFile(FileName);
+                        
+                        // Output
+                        APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, "Deleted old backup: '" + AutoBackupNames[i] + "' automatically.", null, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
                     }
                 }
 
+                // Build file for today
                 string TodaysName = DateTime.Now.ToString("yyyy_MM_dd") + "_autobackup";
                 string TodaysFile = Helper.FileHandling.PathCombine(Globals.BackupPlaylistPath, TodaysName);
+                
+                // if it exists already
                 if (Helper.FileHandling.doesFileExist(TodaysFile))
                 {
-                    APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, "Deleted Todays backup: '" + TodaysName + "', since we will be creating a new one.", null, Globals.EmbedColors.LoggingEmbed));
+                    // delete and inform
                     Helper.FileHandling.deleteFile(TodaysFile);
+                    APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, "Deleted Todays backup: '" + TodaysName + "', since we will be creating a new one.", null, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
                 }
+
+                // Create Backup for today with our name
                 Create(null, TodaysName);
             }
             catch (Exception ex)
             {
-                APIs.MyDiscord.SendMessage(Globals.BuildEmbed(null, "Autobackupcreate failed.", null, Globals.EmbedColors.ErrorEmbed));
+                APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, "Autobackupcreate failed.", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 Helper.Logger.Log(ex);
             }
 
@@ -212,6 +275,16 @@ namespace WasIchHoerePlaylist
 
 
 
+
+
+
+
+        /// <summary>
+        /// Output Method. Either outputs to logging Channel or as reponse to command.
+        /// </summary>
+        /// <param name="pEmbed"></param>
+        /// <param name="command"></param>
+        /// <returns></returns>
         public static Task Output(Embed pEmbed, SocketSlashCommand command = null)
         {
             try
@@ -234,6 +307,14 @@ namespace WasIchHoerePlaylist
         }
 
 
+
+        /// <summary>
+        /// Gets Backup Name. Either from SlashCommand or from Parameter
+        /// </summary>
+        /// <param name="BackupName"></param>
+        /// <param name="command"></param>
+        /// <param name="CustomBackupName"></param>
+        /// <returns></returns>
         public static bool GetBackupName(out string BackupName, SocketSlashCommand command = null, string CustomBackupName = "")
         {
             string tmp = "";

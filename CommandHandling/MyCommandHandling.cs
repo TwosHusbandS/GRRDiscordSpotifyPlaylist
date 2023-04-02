@@ -15,6 +15,11 @@ namespace WasIchHoerePlaylist.CommandHandling
 {
     internal partial class MyCommandHandling
     {
+        /// <summary>
+        /// Handling all Slash Commands
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
         public static Task SlashCommandHandler(SocketSlashCommand command)
         {
             //await command.RespondAsync($"You executed {command.Data.Name}");
@@ -62,7 +67,7 @@ namespace WasIchHoerePlaylist.CommandHandling
             }
             catch
             {
-                command.RespondAsync(embed: Globals.BuildEmbed(command, "Error processing slashcommand", null, Globals.EmbedColors.ErrorEmbed));
+                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error processing slashcommand", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
             }
 
 
@@ -70,16 +75,68 @@ namespace WasIchHoerePlaylist.CommandHandling
         }
 
 
-
+        /// <summary>
+        /// Responds that Permissions are Missing. Is only shown for user executing
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
         public static Task MissingPermissions(SocketSlashCommand command)
         {
-            command.RespondAsync(embed: Globals.BuildEmbed(command, "Error:\nMissing Permissions.", null, Globals.EmbedColors.ErrorEmbed), ephemeral: true);
+            command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error:\nMissing Permissions.", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed), ephemeral: true);
             return Task.CompletedTask;
         }
 
 
 
-        public static async Task BuildCommands(DiscordSocketClient DSC)
+        /// <summary>
+        /// Printing all Parameters to console
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        public static Task PrintOptions(SocketSlashCommand command)
+        {
+            for (int i = 0; i <= command.Data.Options.Count - 1; i++)
+            {
+                SocketSlashCommandDataOption SSCDO = command.Data.Options.ElementAt(i);
+                Console.WriteLine();
+                Console.WriteLine();
+                Console.WriteLine("Command.CommandName: '" + command.CommandName + "'");
+                PrintOptions(SSCDO, i, "");
+                Console.WriteLine();
+                Console.WriteLine();
+            }
+
+            return Task.CompletedTask;
+        }
+
+
+        /// <summary>
+        /// Printing all Parameters to console inner recusive Method
+        /// </summary>
+        /// <param name="SSCDO"></param>
+        /// <param name="inde"></param>
+        /// <param name="Indent"></param>
+        /// <returns></returns>
+        public static Task PrintOptions(SocketSlashCommandDataOption SSCDO, int inde = 0, string Indent = "")
+        {
+            Console.WriteLine("{0} i={1} SSCDO.Name: '{2}'", Indent, inde, SSCDO.Name);
+            Console.WriteLine("{0} i={1} SSCDO.Value: '{2}'", Indent, inde, SSCDO.Value);
+            for (int i = 0; i <= SSCDO.Options.Count - 1; i++)
+            {
+                SocketSlashCommandDataOption SSCDO_ = SSCDO.Options.ElementAt(i);
+                PrintOptions(SSCDO_, i, Indent + "    ");
+            }
+            return Task.CompletedTask;
+        }
+
+
+        /// <summary>
+        /// Building all Commands
+        /// </summary>
+        /// <param name="DSC"></param>
+        /// <param name="AreGlobalCommands"></param>
+        /// <returns></returns>
+        public static async Task BuildCommands(DiscordSocketClient DSC, bool AreGlobalCommands = true)
         {
             // Let's build a guild command! We're going to need a guild so lets just put that in a variable.
             var guild = DSC.GetGuild(Options.DISCORD_GUILD_ID);
@@ -117,31 +174,31 @@ namespace WasIchHoerePlaylist.CommandHandling
                 .WithName("remove-song")
                 .WithDescription("Remove a song from the playlist")
                 .WithType(ApplicationCommandOptionType.SubCommand)
-                .AddOption("track", ApplicationCommandOptionType.String, "Spotify Track you want to remove (link, or ID)", isRequired: true));     
-            
+                .AddOption("track", ApplicationCommandOptionType.String, "Spotify Track you want to remove (link, or ID)", isRequired: true));
 
-                var CommandBackups = new Discord.SlashCommandBuilder()
-            .WithName("backups")
-            .WithDescription("Backups of the songs of the playlist.")
-            .AddOption(new SlashCommandOptionBuilder()
-                .WithName("list")
-                .WithDescription("List all Backups")
-                .WithType(ApplicationCommandOptionType.SubCommand))
-            .AddOption(new SlashCommandOptionBuilder()
-                .WithName("create")
-                .WithDescription("Create a backup")
-                .WithType(ApplicationCommandOptionType.SubCommand)
-                .AddOption("name", ApplicationCommandOptionType.String, "Name of the backup you want to create", isRequired: true))
-            .AddOption(new SlashCommandOptionBuilder()
-                .WithName("delete")
-                .WithDescription("Delete a backup")
-                .WithType(ApplicationCommandOptionType.SubCommand)
-                .AddOption("name", ApplicationCommandOptionType.String, "Name of the backup you want to delete", isRequired: true))
-            .AddOption(new SlashCommandOptionBuilder()
-                .WithName("apply")
-                .WithDescription("Use a previous backup and overwrite the playlist")
-                .WithType(ApplicationCommandOptionType.SubCommand)
-                .AddOption("name", ApplicationCommandOptionType.String, "Name of the backup you want to use.", isRequired: true));
+
+            var CommandBackups = new Discord.SlashCommandBuilder()
+        .WithName("backups")
+        .WithDescription("Backups of the songs of the playlist.")
+        .AddOption(new SlashCommandOptionBuilder()
+            .WithName("list")
+            .WithDescription("List all Backups")
+            .WithType(ApplicationCommandOptionType.SubCommand))
+        .AddOption(new SlashCommandOptionBuilder()
+            .WithName("create")
+            .WithDescription("Create a backup")
+            .WithType(ApplicationCommandOptionType.SubCommand)
+            .AddOption("name", ApplicationCommandOptionType.String, "Name of the backup you want to create", isRequired: true))
+        .AddOption(new SlashCommandOptionBuilder()
+            .WithName("delete")
+            .WithDescription("Delete a backup")
+            .WithType(ApplicationCommandOptionType.SubCommand)
+            .AddOption("name", ApplicationCommandOptionType.String, "Name of the backup you want to delete", isRequired: true))
+        .AddOption(new SlashCommandOptionBuilder()
+            .WithName("apply")
+            .WithDescription("Use a previous backup and overwrite the playlist")
+            .WithType(ApplicationCommandOptionType.SubCommand)
+            .AddOption("name", ApplicationCommandOptionType.String, "Name of the backup you want to use.", isRequired: true));
 
             var CommandSettings = new Discord.SlashCommandBuilder()
             .WithName("settings")
@@ -245,15 +302,6 @@ namespace WasIchHoerePlaylist.CommandHandling
                     .WithType(ApplicationCommandOptionType.Integer)));
 
 
-
-
-
-
-
-
-
-
-
             var CommandDailyUserlimit = new Discord.SlashCommandBuilder()
             .WithName("dailyuserlimit")
             .WithDescription("Everything regarding the daily limit of users")
@@ -301,91 +349,100 @@ namespace WasIchHoerePlaylist.CommandHandling
                 .WithDescription("Shutdowns the bot.");
 
 
-    
+
 
             try
             {
-                var shit = await guild.GetApplicationCommandsAsync();
-                var shit2 = await APIs.MyDiscord.MyDiscordClient.GetGlobalApplicationCommandsAsync();
+                var ExistingCommandsGuild = await guild.GetApplicationCommandsAsync();
+                var ExistingCommandsGlobal = await APIs.MyDiscord.MyDiscordClient.GetGlobalApplicationCommandsAsync();
 
                 Console.WriteLine("Removing ALL GUILD commands...");
-                foreach (var shi in shit)
+                foreach (var ExistingGuildCommand in ExistingCommandsGuild)
                 {
-                    Console.WriteLine("---- Removing existing GUILD Commands: '" + shi.Name + "'..." );
-                    await shi.DeleteAsync();
-                    Console.WriteLine("---- DONE Removing existing GUILD Commands: '" + shi.Name + "'...");
+                    Console.WriteLine("---- Removing existing GUILD Commands: '" + ExistingGuildCommand.Name + "'...");
+                    await ExistingGuildCommand.DeleteAsync();
+                    Console.WriteLine("---- DONE Removing existing GUILD Commands: '" + ExistingGuildCommand.Name + "'...");
                 }
                 Console.WriteLine("Removing ALL GUILD commands...DONE");
 
-                Console.WriteLine("Removing ALL commands...");
+                Console.WriteLine("Removing ALL GLOBAL commands...");
 
-                foreach (var shi2 in shit2)
+                foreach (var ExistingGlobalCommand in ExistingCommandsGuild)
                 {
-                    Console.WriteLine("---- Removing existing Commands: '" + shi2.Name + "'...");
-                    await shi2.DeleteAsync();
-                    Console.WriteLine("---- DONE Removing existing Commands: '" + shi2.Name + "'...");
+                    Console.WriteLine("---- Removing existing GLOBAL Commands: '" + ExistingGlobalCommand.Name + "'...");
+                    await ExistingGlobalCommand.DeleteAsync();
+                    Console.WriteLine("---- DONE Removing existing GLOBAL Commands: '" + ExistingGlobalCommand.Name + "'...");
                 }
-                Console.WriteLine("Removing ALL commands...DONE");
+                Console.WriteLine("Removing ALL GLOBAL commands...DONE");
 
 
                 Console.WriteLine("Building ALL commands...");
-                await BuildCommand(guild, CommandHelp);
-                await BuildCommand(guild, CommandStatus);
-                await BuildCommand(guild, CommandPlaylist);
-                await BuildCommand(guild, CommandSongs);
-                await BuildCommand(guild, CommandBackups);
-                await BuildCommand(guild, CommandSettings);
-                await BuildCommand(guild, CommandDailyUserlimit);
-                await BuildCommand(guild, CommandRestart);
-                await BuildCommand(guild, CommandShutdown);
+                Console.WriteLine("GlobalCommands: " + AreGlobalCommands);
+                List<SlashCommandBuilder> AllCommands = new List<SlashCommandBuilder>();
+                List<Task> AllCommandsTasks = new List<Task>();
+                AllCommands.Add(CommandHelp);
+                AllCommands.Add(CommandStatus);
+                AllCommands.Add(CommandPlaylist);
+                AllCommands.Add(CommandSongs);
+                AllCommands.Add(CommandBackups);
+                AllCommands.Add(CommandSettings);
+                AllCommands.Add(CommandDailyUserlimit);
+                AllCommands.Add(CommandRestart);
+                AllCommands.Add(CommandShutdown);
+                for (int i = 0; i <= AllCommands.Count - 1; i++)
+                {
+                    Task t;
+                    if (AreGlobalCommands)
+                    {
+                        t = BuildCommand(AllCommands[i], null);
+                    }
+                    else
+                    {
+                        t = BuildCommand(AllCommands[i], guild);
+                    }
+
+                    AllCommandsTasks.Add(t);
+                    t.Start();
+                }
+
+                for (int i = 0; i <= AllCommandsTasks.Count - 1; i++)
+                {
+                    await AllCommandsTasks[i];
+                }
+
+
                 Console.WriteLine("Building ALL commands...DONE");
 
             }
             catch (Exception ex)
             {
-                Helper.Logger.Log(ex, 3);
+                Helper.Logger.Log(ex);
             }
 
             return;
         }
 
 
-        public static Task PrintOptions(SocketSlashCommand command)
-        {
-            for (int i = 0; i <= command.Data.Options.Count - 1; i++)
-            {
-                SocketSlashCommandDataOption SSCDO = command.Data.Options.ElementAt(i);
-                Console.WriteLine();
-                Console.WriteLine();
-                Console.WriteLine("Command.CommandName: '" + command.CommandName + "'");
-                PrintOptions(SSCDO, i, "");
-                Console.WriteLine();
-                Console.WriteLine();
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public static Task PrintOptions(SocketSlashCommandDataOption SSCDO, int inde = 0, string Indent = "")
-        {
-            Console.WriteLine("{0} i={1} SSCDO.Name: '{2}'", Indent, inde, SSCDO.Name);
-            Console.WriteLine("{0} i={1} SSCDO.Value: '{2}'", Indent, inde, SSCDO.Value);
-            for (int i = 0; i <= SSCDO.Options.Count - 1; i++)
-            {
-                SocketSlashCommandDataOption SSCDO_ = SSCDO.Options.ElementAt(i);
-                PrintOptions(SSCDO_, i, Indent + "    ");
-            }
-            return Task.CompletedTask;
-        }
-
-        public static async Task BuildCommand(SocketGuild SG, SlashCommandBuilder SCB)
+        /// <summary>
+        /// Builds the actual Command
+        /// </summary>
+        /// <param name="SCB"></param>
+        /// <param name="SG"></param>
+        /// <returns></returns>
+        public static async Task BuildCommand(SlashCommandBuilder SCB, SocketGuild SG = null)
         {
             try
             {
                 Console.WriteLine("Creating Command: '" + SCB.Name + "'...");
                 ApplicationCommandProperties ACP = SCB.Build();
-                //await SG.CreateApplicationCommandAsync(ACP);
-                await APIs.MyDiscord.MyDiscordClient.CreateGlobalApplicationCommandAsync(ACP);
+                if (SG == null)
+                {
+                    await APIs.MyDiscord.MyDiscordClient.CreateGlobalApplicationCommandAsync(ACP);
+                }
+                else
+                {
+                    await SG.CreateApplicationCommandAsync(ACP);
+                }
                 Console.WriteLine("Creating Command: '" + SCB.Name + "' DONE");
             }
             catch (Exception e)

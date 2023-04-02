@@ -9,13 +9,20 @@ namespace WasIchHoerePlaylist.CommandHandling
 {
     internal partial class MyCommandHandling
     {
+        /// <summary>
+        /// Handle Restart Command
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="UserIsAdmin"></param>
+        /// <returns></returns>
         static async Task HandleCommand_Restart(SocketSlashCommand command, bool UserIsAdmin)
         {
+            /// Permission check
             if (UserIsAdmin)
             {
-                await command.RespondAsync(embed: Globals.BuildEmbed(command, "Will try restarting the Bot...Wish me luck lmao", null, Globals.EmbedColors.NormalEmbed));
+                await command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Will try restarting the Bot...Wish me luck lmao", null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
                 await Task.Delay(500);
-                Globals.ExecuteLinuxCommand("systemctl restart grrdiscordspotifyplaylist.service");
+                Helper.LinuxHelper.RestartService();
             }
             else
             {
