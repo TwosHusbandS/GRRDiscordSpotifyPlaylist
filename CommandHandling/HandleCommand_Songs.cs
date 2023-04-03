@@ -62,7 +62,7 @@ namespace WasIchHoerePlaylist.CommandHandling
             if (FullTracks.Count == 0)
             {
                 MyList.Add(new KeyValuePair<string, string>("Empty Playlist", "No Songs in Playlist."));
-                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, null, MyList, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
+                MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, null, MyList, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 return;
             }
 
@@ -118,11 +118,11 @@ namespace WasIchHoerePlaylist.CommandHandling
                     }
                 }
                 // output
-                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, null, MyList, Helper.DiscordHelper.EmbedColors.NormalEmbed));
+                MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, null, MyList, Helper.DiscordHelper.EmbedColors.NormalEmbed));
             }
             catch (Exception ex)
             {
-                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error listing all Songs", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
+                MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Error listing all Songs", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 Helper.Logger.Log(ex);
             }
         }
@@ -166,16 +166,16 @@ namespace WasIchHoerePlaylist.CommandHandling
                     
                     // Actually adding songs
                     Logic.AddSongs(Uris, 0);
-                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, null, Output, Helper.DiscordHelper.EmbedColors.NormalEmbed));
+                    MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, null, Output, Helper.DiscordHelper.EmbedColors.NormalEmbed));
                 }
                 else
                 {
-                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "No songs found", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
+                    MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "No songs found", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 }
             }
             catch (Exception ex)
             {
-                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error adding Songs", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
+                MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Error adding Songs", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 Helper.Logger.Log(ex);
             }
         }
@@ -212,21 +212,21 @@ namespace WasIchHoerePlaylist.CommandHandling
                         // Get Uri from track, remove it
                         string uri = FullTracks[Index].Uri;
                         APIs.MySpotify.RemoveFromPlaylist(uri);
-                        command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Tried removing song at index: " + input, null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
+                        MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Tried removing song at index: " + input, null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                     }
                     else
                     {
-                        command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error Removing SongAtIndex (Argument out of Bounds)", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
+                        MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Error Removing SongAtIndex (Argument out of Bounds)", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                     }
                 }
                 else
                 {
-                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error Removing SongAtIndex (TryParse failed)", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
+                    MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Error Removing SongAtIndex (TryParse failed)", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 }
             }
             catch (Exception ex)
             {
-                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error Removing SongAtIndex", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
+                MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Error Removing SongAtIndex", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 Helper.Logger.Log(ex);
             }
         }
@@ -270,16 +270,16 @@ namespace WasIchHoerePlaylist.CommandHandling
                     
                     // Actual call to API
                     APIs.MySpotify.RemoveFromPlaylist(Uris);
-                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, null, Output, Helper.DiscordHelper.EmbedColors.NormalEmbed));
+                    MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, null, Output, Helper.DiscordHelper.EmbedColors.NormalEmbed));
                 }
                 else
                 {
-                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "No songs found", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
+                    MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "No songs found", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 }
             }
             catch (Exception ex)
             {
-                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error removing Songs", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
+                MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Error removing Songs", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 Helper.Logger.Log(ex);
             }
         }

@@ -15,9 +15,16 @@ namespace WasIchHoerePlaylist.Helper
         /// <param name="cmd"></param>
         public static void ExecuteLinuxCommand(string cmd)
         {
-            ProcessStartInfo startInfo = new ProcessStartInfo() { FileName = "/bin/bash", Arguments = cmd, };
-            Process proc = new Process() { StartInfo = startInfo, };
-            proc.Start();
+            try
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo() { FileName = "/bin/bash", Arguments = cmd, };
+                Process proc = new Process() { StartInfo = startInfo, };
+                proc.Start();
+            }
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex);
+            }
         }
 
 

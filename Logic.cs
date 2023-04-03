@@ -24,46 +24,53 @@ namespace WasIchHoerePlaylist
         /// <returns></returns>
         public static async Task RemoveSongFromReactionRequest(Cacheable<IUserMessage, ulong> arg1)
         {
-            // grab message someone reacted to
-            IUserMessage MyMessage = await arg1.DownloadAsync();
-
-            // declare and init variables we need to remove song and output
-            string SongName = "";
-            string SongUri = "";
-
-            // loop through all embeds
-            foreach (Embed MyEmbed in MyMessage.Embeds)
+            try
             {
-                // loop through fields of embed
-                foreach (var EmbedField in MyEmbed.Fields)
-                {
-                    // if Name of Field of Embed matches our string
-                    if (EmbedField.Name == Globals.SongAddedTopline)
-                    {
-                        // Set Uri
-                        SongUri = EmbedField.Value;
-                    }
+                // grab message someone reacted to
+                IUserMessage MyMessage = await arg1.DownloadAsync();
 
-                    // if Name of Field of Embed matches our other String
-                    else if (EmbedField.Name == Globals.SongAddedDescription)
+                // declare and init variables we need to remove song and output
+                string SongName = "";
+                string SongUri = "";
+
+                // loop through all embeds
+                foreach (Embed MyEmbed in MyMessage.Embeds)
+                {
+                    // loop through fields of embed
+                    foreach (var EmbedField in MyEmbed.Fields)
                     {
-                        // Set SongName
-                        SongName = EmbedField.Value;
+                        // if Name of Field of Embed matches our string
+                        if (EmbedField.Name == Globals.SongAddedTopline)
+                        {
+                            // Set Uri
+                            SongUri = EmbedField.Value;
+                        }
+
+                        // if Name of Field of Embed matches our other String
+                        else if (EmbedField.Name == Globals.SongAddedDescription)
+                        {
+                            // Set SongName
+                            SongName = EmbedField.Value;
+                        }
                     }
                 }
+
+                // Initiate List for Output
+                List<KeyValuePair<string, string>> SongList = new List<KeyValuePair<string, string>>();
+
+                // Add which song we removed to Output
+                SongList.Add(new KeyValuePair<string, string>("Removed following Song from the Playlist, as per Reaction-Request:", SongName));
+
+                // Remove song from Playlist
+                APIs.MySpotify.RemoveFromPlaylist(SongUri);
+
+                // output to channel
+                APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, null, SongList, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
             }
-
-            // Initiate List for Output
-            List<KeyValuePair<string, string>> SongList = new List<KeyValuePair<string, string>>();
-
-            // Add which song we removed to Output
-            SongList.Add(new KeyValuePair<string, string>("Removed following Song from the Playlist, as per Reaction-Request:", SongName));
-
-            // Remove song from Playlist
-            APIs.MySpotify.RemoveFromPlaylist(SongUri);
-
-            // output to channel
-            APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, null, SongList, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex);
+            }
         }
 
 
@@ -76,22 +83,28 @@ namespace WasIchHoerePlaylist
         /// <returns></returns>
         public static async Task<string> GetFromEmbed(SocketMessage messageParam)
         {
-
-            foreach (var embed in messageParam.Embeds)
+            try
             {
-                string FMRegex = @"^\[(.*)\]\(https:\/\/www.last.fm\/music\/.*\)\nBy \*\*(.*)\*\* \| \*(.*)\*$";
-                Match MyFMMatch = Regex.Match(embed.Description, FMRegex);
-
-                if (MyFMMatch.Success)
+                foreach (var embed in messageParam.Embeds)
                 {
-                    if (MyFMMatch.Groups.Count == 4)
+                    string FMRegex = @"^\[(.*)\]\(https:\/\/www.last.fm\/music\/.*\)\nBy \*\*(.*)\*\* \| \*(.*)\*$";
+                    Match MyFMMatch = Regex.Match(embed.Description, FMRegex);
+
+                    if (MyFMMatch.Success)
                     {
-                        //Console.WriteLine("Song: '{0}'", MyFMMatch.Groups[1]);
-                        //Console.WriteLine("Artist: '{0}'", MyFMMatch.Groups[2]);
-                        //Console.WriteLine("Album: '{0}'", MyFMMatch.Groups[3]);
-                        return await APIs.MySpotify.GetUriFromSearch(MyFMMatch.Groups[2] + " " + MyFMMatch.Groups[1]);
+                        if (MyFMMatch.Groups.Count == 4)
+                        {
+                            //Globals.DebugPrint("Song: '{0}'", MyFMMatch.Groups[1]);
+                            //Globals.DebugPrint("Artist: '{0}'", MyFMMatch.Groups[2]);
+                            //Globals.DebugPrint("Album: '{0}'", MyFMMatch.Groups[3]);
+                            return await APIs.MySpotify.GetUriFromSearch(MyFMMatch.Groups[2] + " " + MyFMMatch.Groups[1]);
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex);
             }
             return "";
         }
@@ -104,109 +117,115 @@ namespace WasIchHoerePlaylist
         /// <returns></returns>
         public static async Task<List<string>> GetFromContent(string Content)
         {
-            // weird spotify.link/Some_ID_That_Redirects_To_proper_URL
-            string anyLinkRegex = @"http[s]?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/=]*)";
-            string spotifyCinniRegex = @"http[s]?:\/\/spotify\.link\/([a-zA-Z0-9]{6,})";
-            string spotifyRegex = @"http[s]?:\/\/open.spotify\.com\/(embed\/)?(track|album)\/([a-zA-Z0-9]{6,})";
-            string youtubeRegex = @"http[s]?:\/\/(www.)?(m.)?((youtube(-nocookie)?\.com\/((watch\?v=)|(v\/)|(embed\/)))|(youtu.be\/))[a-zA-Z0-9\-_]{5,}";
-            string spotifyUriIDRegex = @"(spotify:track:)([a-zA-Z0-9]{10,30})";
-            // cant match ID only because it will match other parts of other links
-
-
-            // https://regex101.com/r/PAuTVh/1
-
             List<string> MyUris = new List<string>();
 
-
-            // if we have an actual Spotify Track Uri
-            Regex MySpotifyUriIDRegex = new Regex(spotifyUriIDRegex);
-            foreach (Match MySpotifyUriIDMatch in MySpotifyUriIDRegex.Matches(Content))
+            try
             {
-                if (MySpotifyUriIDMatch.Success)
+                // weird spotify.link/Some_ID_That_Redirects_To_proper_URL
+                string anyLinkRegex = @"http[s]?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/=]*)";
+                string spotifyCinniRegex = @"http[s]?:\/\/spotify\.link\/([a-zA-Z0-9]{6,})";
+                string spotifyRegex = @"http[s]?:\/\/open.spotify\.com\/(embed\/)?(track|album)\/([a-zA-Z0-9]{6,})";
+                string youtubeRegex = @"http[s]?:\/\/(www.)?(m.)?((youtube(-nocookie)?\.com\/((watch\?v=)|(v\/)|(embed\/)))|(youtu.be\/))[a-zA-Z0-9\-_]{5,}";
+                string spotifyUriIDRegex = @"(spotify:track:)([a-zA-Z0-9]{10,30})";
+                // cant match ID only because it will match other parts of other links
+
+                // https://regex101.com/r/PAuTVh/1
+
+                // if we have an actual Spotify Track Uri
+                Regex MySpotifyUriIDRegex = new Regex(spotifyUriIDRegex);
+                foreach (Match MySpotifyUriIDMatch in MySpotifyUriIDRegex.Matches(Content))
                 {
-                    if (MySpotifyUriIDMatch.Groups.Count >= 3)
+                    if (MySpotifyUriIDMatch.Success)
                     {
-                        MyUris.Add(Helper.SpotifyHelper.GetTrackUriFromTrackId(MySpotifyUriIDMatch.Groups[2].ToString()));
-                    }
-                }
-            }
-
-            // Loop through all Link Matches
-            Regex MyAnyLinkRegex = new Regex(anyLinkRegex);
-            foreach (Match MyAnyLinkMatch in MyAnyLinkRegex.Matches(Content))
-            {
-                if (MyAnyLinkMatch.Success)
-                {
-                    // Set Content Variable to current link match
-                    Content = MyAnyLinkMatch.Groups[0].Value;
-
-
-                    // Spotify "Cinni" type Url
-                    Regex MySpotifyCinniRegex = new Regex(spotifyCinniRegex);
-                    foreach (Match MySpotifyCinniMatch in MySpotifyCinniRegex.Matches(Content))
-                    {
-                        if (MySpotifyCinniMatch.Success)
+                        if (MySpotifyUriIDMatch.Groups.Count >= 3)
                         {
-                            string tmp = await Helper.NetworkHelper.GetFinalRedirectUrlFromUrl(MySpotifyCinniMatch.Groups[0].ToString());
-                            Content = Content + " " + tmp;
+                            MyUris.Add(Helper.SpotifyHelper.GetTrackUriFromTrackId(MySpotifyUriIDMatch.Groups[2].ToString()));
                         }
                     }
+                }
 
-                    // Spotify Track or Album link
-                    Regex MySpotifyRegex = new Regex(spotifyRegex);
-                    foreach (Match MySpotifyMatch in MySpotifyRegex.Matches(Content))
+                // Loop through all Link Matches
+                Regex MyAnyLinkRegex = new Regex(anyLinkRegex);
+                foreach (Match MyAnyLinkMatch in MyAnyLinkRegex.Matches(Content))
+                {
+                    if (MyAnyLinkMatch.Success)
                     {
-                        if (MySpotifyMatch.Success)
-                        {
-                            if (MySpotifyMatch.Groups.Count >= 4)
-                            {
-                                string Id = MySpotifyMatch.Groups[3].ToString();
-                                string Type = MySpotifyMatch.Groups[2].ToString().ToLower();
+                        // Set Content Variable to current link match
+                        Content = MyAnyLinkMatch.Groups[0].Value;
 
-                                // if Track Uri
-                                if (Type == "track")
+
+                        // Spotify "Cinni" type Url
+                        Regex MySpotifyCinniRegex = new Regex(spotifyCinniRegex);
+                        foreach (Match MySpotifyCinniMatch in MySpotifyCinniRegex.Matches(Content))
+                        {
+                            if (MySpotifyCinniMatch.Success)
+                            {
+                                string tmp = await Helper.NetworkHelper.GetFinalRedirectUrlFromUrl(MySpotifyCinniMatch.Groups[0].ToString());
+                                Content = Content + " " + tmp;
+                            }
+                        }
+
+                        // Spotify Track or Album link
+                        Regex MySpotifyRegex = new Regex(spotifyRegex);
+                        foreach (Match MySpotifyMatch in MySpotifyRegex.Matches(Content))
+                        {
+                            if (MySpotifyMatch.Success)
+                            {
+                                if (MySpotifyMatch.Groups.Count >= 4)
                                 {
-                                    // return with some string before
-                                    MyUris.Add(Helper.SpotifyHelper.GetTrackUriFromTrackId(Id));
+                                    string Id = MySpotifyMatch.Groups[3].ToString();
+                                    string Type = MySpotifyMatch.Groups[2].ToString().ToLower();
+
+                                    // if Track Uri
+                                    if (Type == "track")
+                                    {
+                                        // return with some string before
+                                        MyUris.Add(Helper.SpotifyHelper.GetTrackUriFromTrackId(Id));
+                                    }
+                                    // if album
+                                    else if (Type == "album")
+                                    {
+                                        // method that checks if album only has one track etc.
+                                        MyUris.Add(await APIs.MySpotify.GetTrackUriFromAlbum(Id));
+                                    }
                                 }
-                                // if album
-                                else if (Type == "album")
+                            }
+                        }
+
+                        // Youtube link
+                        Regex MyYoutubeRegex = new Regex(youtubeRegex);
+                        foreach (Match MyYoutubeMatch in MyYoutubeRegex.Matches(Content))
+                        {
+                            if (MyYoutubeMatch.Success)
+                            {
+                                if (MyYoutubeMatch.Groups.Count > 0)
                                 {
-                                    // method that checks if album only has one track etc.
-                                    MyUris.Add(await APIs.MySpotify.GetTrackUriFromAlbum(Id));
+                                    string tmp = MyYoutubeMatch.Groups[0].ToString();
+                                    if (tmp.Contains('='))
+                                    {
+                                        tmp = tmp.Substring(tmp.LastIndexOf('=') + 1);
+                                    }
+                                    else
+                                    {
+                                        tmp = tmp.Substring(tmp.LastIndexOf('/') + 1);
+                                    }
+
+                                    // Call youtube API
+                                    tmp = await APIs.MyYoutube.GetTitleFromVideoId(tmp);
+
+                                    MyUris.Add(await APIs.MySpotify.GetUriFromSearch(tmp));
                                 }
                             }
                         }
                     }
-
-                    // Youtube link
-                    Regex MyYoutubeRegex = new Regex(youtubeRegex);
-                    foreach (Match MyYoutubeMatch in MyYoutubeRegex.Matches(Content))
-                    {
-                        if (MyYoutubeMatch.Success)
-                        {
-                            if (MyYoutubeMatch.Groups.Count > 0)
-                            {
-                                string tmp = MyYoutubeMatch.Groups[0].ToString();
-                                if (tmp.Contains('='))
-                                {
-                                    tmp = tmp.Substring(tmp.LastIndexOf('=') + 1);
-                                }
-                                else
-                                {
-                                    tmp = tmp.Substring(tmp.LastIndexOf('/') + 1);
-                                }
-
-                                // Call youtube API
-                                tmp = await APIs.MyYoutube.GetTitleFromVideoId(tmp);
-
-                                MyUris.Add(await APIs.MySpotify.GetUriFromSearch(tmp));
-                            }
-                        }
-                    }
                 }
+                return MyUris;
             }
-            return MyUris;
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex);
+                return MyUris;
+            }
         }
 
 
@@ -221,57 +240,62 @@ namespace WasIchHoerePlaylist
         /// <returns></returns>
         public static async Task ProcessPotentialSong(SocketMessage messageParam, SocketMessage prevMessageParam)
         {
-            string PreFix = "[" + DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss") + "] - ";
-            Console.WriteLine(PreFix + "Message by '{0}' in '{1}': '{2}'", messageParam.Author, messageParam.Channel, messageParam.Content);
-
-            List<string> MyUris = new List<string>();
-
-
-            // if prevMessage is null
-            if (prevMessageParam == null)
+            try
             {
-                // and the message is from FM Bot
+                string PreFix = "[" + DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss") + "] - ";
+
+                Globals.DebugPrint(PreFix + " Message by '" + messageParam.Author + "' in '" + messageParam.Channel + "': '" + messageParam.Content + "'");
+
+                List<string> MyUris = new List<string>();
+
+                // if prevMessage is null
+                if (prevMessageParam == null)
+                {
+                    // and the message is from FM Bot
+                    if (messageParam.Author.Id == Globals.FMBotID)
+                    {
+                        // do nothing
+                        return;
+                    }
+                }
+
+                // set UserID to 0
+                ulong UserID = 0;
+
+                // If curr message author is bot
                 if (messageParam.Author.Id == Globals.FMBotID)
                 {
-                    // do nothing
-                    return;
+                    // set UserID to prev message (the one what triggered the bot. Hopefully.
+                    UserID = prevMessageParam.Author.Id;
                 }
+                else
+                {
+                    // set UserID to the author of curr message
+                    UserID = messageParam.Author.Id;
+                }
+
+
+                // Removed cause of output further on
+                // if user cant add songs
+                //if (!UserSongs.CanUserAddSong(UserID))
+                //{
+                //    return;
+                //}
+
+
+                // Do the Logic to get the Uris
+                MyUris.Add(await GetFromEmbed(messageParam));
+                foreach (string tmpUri in await GetFromContent(messageParam.Content))
+                {
+                    MyUris.Add(tmpUri);
+                }
+
+                AddSongs(MyUris, UserID, messageParam);
             }
-
-            // set UserID to 0
-            ulong UserID = 0;
-
-            // If curr message author is bot
-            if (messageParam.Author.Id == Globals.FMBotID)
+            catch (Exception ex)
             {
-                // set UserID to prev message (the one what triggered the bot. Hopefully.
-                UserID = prevMessageParam.Author.Id;
+                Helper.Logger.Log(ex);
             }
-            else
-            {
-                // set UserID to the author of curr message
-                UserID = messageParam.Author.Id;
-            }
-
-
-            // Removed cause of output further on
-            // if user cant add songs
-            //if (!UserSongs.CanUserAddSong(UserID))
-            //{
-            //    return;
-            //}
-
-
-            // Do the Logic to get the Uris
-            MyUris.Add(await GetFromEmbed(messageParam));
-            foreach (string tmpUri in await GetFromContent(messageParam.Content))
-            {
-                MyUris.Add(tmpUri);
-            }
-
-            AddSongs(MyUris, UserID, messageParam);
-
-            return;
         }
 
 
@@ -399,7 +423,10 @@ namespace WasIchHoerePlaylist
                             Discord.Rest.RestUserMessage RUM = await APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, null, tmp, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
 
                             // Add reaction to the message
-                            await RUM.AddReactionAsync(Globals.MyReactionEmote);
+                            if (RUM != null)
+                            {
+                                await RUM.AddReactionAsync(Globals.MyReactionEmote);
+                            }
                         }
 
 
@@ -460,12 +487,12 @@ namespace WasIchHoerePlaylist
                 else
                 {
                     // Dont output to channel...could be normal text message
-                    Console.WriteLine("No songs in that message");
+                    string tmpLink = @"https://discord.com/channels/" + Options.DISCORD_GUILD_ID + "/" + messageParam.Channel.Id + "/" + messageParam.Id;
+                    Globals.DebugPrint("No songs in that message (" + tmpLink + ")");
                 }
             }
             catch (Exception ex)
             {
-                APIs.MyDiscord.SendMessage("Error TryCatch when adding Songs...");
                 Helper.Logger.Log(ex);
             }
         }

@@ -32,10 +32,16 @@ namespace WasIchHoerePlaylist.Helper
             string rtrn = "";
             try
             {
-                rtrn = Uri.Substring(Uri.LastIndexOf(':') + 1);
+                if (Uri.Contains(':'))
+                {
+                    rtrn = Uri.Substring(Uri.LastIndexOf(':') + 1);
+                }
             }
-            catch { }
-            return rtrn;
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex);
+            }
+            return "Failed to convert. GetTrackIdFromTrackUri";
         }
 
 
@@ -47,16 +53,24 @@ namespace WasIchHoerePlaylist.Helper
         /// <returns></returns>
         public static string GetArtistString(FullTrack ft, string delimintor)
         {
-            string AllArtists = "";
-            for (int i = 0; i <= ft.Artists.Count - 1; i++)
+            try
             {
-                AllArtists += ft.Artists[i].Name;
-                if (i < ft.Artists.Count - 1)
+                string AllArtists = "";
+                for (int i = 0; i <= ft.Artists.Count - 1; i++)
                 {
-                    AllArtists += delimintor;
+                    AllArtists += ft.Artists[i].Name;
+                    if (i < ft.Artists.Count - 1)
+                    {
+                        AllArtists += delimintor;
+                    }
                 }
+                return AllArtists;
             }
-            return AllArtists;
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex);
+            }
+            return "Failed to convert. GetArtistString";
         }
 
 
@@ -68,19 +82,27 @@ namespace WasIchHoerePlaylist.Helper
         /// <returns></returns>
         public static string GetTrackSearchString(FullTrack ft)
         {
-            string TrackName = ft.Name;
-
-            // if we have multiple artists
-            if (ft.Artists.Count > 1)
+            try
             {
-                // if we have tracktitle with feat
-                if ((TrackName.Contains("(feat")) || (TrackName.Contains("(ft")))
+                string TrackName = ft.Name;
+
+                // if we have multiple artists
+                if (ft.Artists.Count > 1)
                 {
-                    TrackName = TrackName.Substring(0, TrackName.LastIndexOf('('));
-                    TrackName = TrackName.TrimEnd(' ');
+                    // if we have tracktitle with feat
+                    if ((TrackName.Contains("(feat")) || (TrackName.Contains("(ft")))
+                    {
+                        TrackName = TrackName.Substring(0, TrackName.LastIndexOf('('));
+                        TrackName = TrackName.TrimEnd(' ');
+                    }
                 }
+                return GetArtistString(ft, ", ") + " " + TrackName;
             }
-            return GetArtistString(ft, ", ") + " " + TrackName;
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex);
+            }
+            return "Failed to convert. GetTrackSearchString";
         }
 
 

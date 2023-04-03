@@ -17,7 +17,22 @@ namespace WasIchHoerePlaylist.Helper
         /// <returns></returns>
         public static string GetUserTextFromSGU(SocketGuildUser SGU)
         {
-            return SGU.Nickname + " [" + SGU.Username + "#" + SGU.Discriminator + "]";
+            try
+            {
+                if (SGU == null)
+                {
+                    return "User Text was null";
+                }
+                else
+                {
+                    return SGU.Nickname + " [" + SGU.Username + "#" + SGU.Discriminator + "]";
+                }
+            }
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex);
+                return "User Text was try/catch";
+            }
         }
 
 
@@ -43,55 +58,65 @@ namespace WasIchHoerePlaylist.Helper
         /// <returns></returns>
         public static Embed BuildEmbed(SocketSlashCommand command, string pDescription, List<KeyValuePair<string, string>> pFields, EmbedColors pEmbedColor)
         {
-            Color _color;
-
-
-            // pEmbedColor could be no embed here, but tbh we dont give a rats ass, put it as Info i guess?
-            switch (pEmbedColor)
+            try
             {
-                case EmbedColors.ErrorEmbed:
-                    _color = new Color(Options.ERROR_COLOR.R, Options.ERROR_COLOR.G, Options.ERROR_COLOR.B);
-                    break;
-                case EmbedColors.LoggingEmbed:
-                    _color = new Color(Options.LOG_COLOR.R, Options.LOG_COLOR.G, Options.LOG_COLOR.B);
-                    break;
-                default:
-                    _color = new Color(Options.EMBED_COLOR.R, Options.EMBED_COLOR.G, Options.EMBED_COLOR.B);
-                    break;
-            }
 
-            var embed = new EmbedBuilder();
+                Color _color;
 
-            embed.WithColor(_color);
-
-            if (command != null)
-            {
-                embed.WithAuthor(command.User);
-            }
-
-            embed.WithTitle("#WasIchHöre - Spotify Bot")
-                .WithUrl(Globals.SpotifyPlaylist); // url is on title
-
-            if (!string.IsNullOrEmpty(pDescription))
-            {
-                embed.WithDescription(pDescription);
-            }
-
-            if (!(pFields == null))
-            {
-                foreach (var field in pFields)
+                // pEmbedColor could be no embed here, but tbh we dont give a rats ass, put it as Info i guess?
+                switch (pEmbedColor)
                 {
-                    embed.AddField(field.Key, field.Value);
+                    case EmbedColors.ErrorEmbed:
+                        _color = new Color(Options.ERROR_COLOR.R, Options.ERROR_COLOR.G, Options.ERROR_COLOR.B);
+                        break;
+                    case EmbedColors.LoggingEmbed:
+                        _color = new Color(Options.LOG_COLOR.R, Options.LOG_COLOR.G, Options.LOG_COLOR.B);
+                        break;
+                    default:
+                        _color = new Color(Options.EMBED_COLOR.R, Options.EMBED_COLOR.G, Options.EMBED_COLOR.B);
+                        break;
                 }
+
+                var embed = new EmbedBuilder();
+
+                embed.WithColor(_color);
+
+                if (command != null)
+                {
+                    embed.WithAuthor(command.User);
+                }
+
+                embed.WithTitle("#WasIchHöre - Spotify Bot")
+                    .WithUrl(Globals.SpotifyPlaylist); // url is on title
+
+                if (!string.IsNullOrEmpty(pDescription))
+                {
+                    embed.WithDescription(pDescription);
+                }
+
+                if (!(pFields == null))
+                {
+                    foreach (var field in pFields)
+                    {
+                        embed.AddField(field.Key, field.Value);
+                    }
+                }
+
+                embed.WithFooter(footer => footer.Text = "GermanRapReddit Discord Spotify Bot") // no markdown here
+                    .WithCurrentTimestamp();
+
+                Embed myEmbed = embed.Build();
+
+                return myEmbed;
             }
-
-            embed.WithFooter(footer => footer.Text = "GermanRapReddit Discord Spotify Bot") // no markdown here
-                .WithCurrentTimestamp();
-
-            Embed myEmbed = embed.Build();
-
-            return myEmbed;
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex);
+                return (new EmbedBuilder()).Build();
+            }
         }
+
+
 
     }
 }

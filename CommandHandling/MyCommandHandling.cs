@@ -67,7 +67,7 @@ namespace WasIchHoerePlaylist.CommandHandling
             }
             catch
             {
-                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error processing slashcommand", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
+                MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Error processing slashcommand", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
             }
 
 
@@ -82,10 +82,37 @@ namespace WasIchHoerePlaylist.CommandHandling
         /// <returns></returns>
         public static Task MissingPermissions(SocketSlashCommand command)
         {
-            command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error:\nMissing Permissions.", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed), ephemeral: true);
+            MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Error:\nMissing Permissions.", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed), true);
             return Task.CompletedTask;
         }
 
+
+
+        /// <summary>
+        /// Respond to a Command
+        /// </summary>
+        /// <param name="mySSC"></param>
+        /// <param name="myEmbed"></param>
+        /// <param name="onlyShowToUser"></param>
+        /// <returns></returns>
+        public static async Task RespondAsync(SocketSlashCommand mySSC, Embed myEmbed, bool onlyShowToUser = false)
+        {
+            try
+            {
+                if (onlyShowToUser)
+                {
+                    await mySSC.RespondAsync(embed: myEmbed, ephemeral: true);
+                }
+                else
+                {
+                    await mySSC.RespondAsync(embed: myEmbed);
+                }
+            }
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex);
+            }
+        }
 
 
         /// <summary>
@@ -95,16 +122,16 @@ namespace WasIchHoerePlaylist.CommandHandling
         /// <returns></returns>
         public static Task PrintOptions(SocketSlashCommand command)
         {
-            for (int i = 0; i <= command.Data.Options.Count - 1; i++)
-            {
-                SocketSlashCommandDataOption SSCDO = command.Data.Options.ElementAt(i);
-                Console.WriteLine();
-                Console.WriteLine();
-                Console.WriteLine("Command.CommandName: '" + command.CommandName + "'");
-                PrintOptions(SSCDO, i, "");
-                Console.WriteLine();
-                Console.WriteLine();
-            }
+            //for (int i = 0; i <= command.Data.Options.Count - 1; i++)
+            //{
+            //    SocketSlashCommandDataOption SSCDO = command.Data.Options.ElementAt(i);
+            //    Globals.DebugPrint();
+            //    Globals.DebugPrint();
+            //    Globals.DebugPrint("Command.CommandName: '" + command.CommandName + "'");
+            //    PrintOptions(SSCDO, i, "");
+            //    Globals.DebugPrint();
+            //    Globals.DebugPrint();
+            //}
 
             return Task.CompletedTask;
         }
@@ -119,8 +146,8 @@ namespace WasIchHoerePlaylist.CommandHandling
         /// <returns></returns>
         public static Task PrintOptions(SocketSlashCommandDataOption SSCDO, int inde = 0, string Indent = "")
         {
-            Console.WriteLine("{0} i={1} SSCDO.Name: '{2}'", Indent, inde, SSCDO.Name);
-            Console.WriteLine("{0} i={1} SSCDO.Value: '{2}'", Indent, inde, SSCDO.Value);
+            Globals.DebugPrint(new StringBuilder($"{Indent} i={inde} SSCDO.Name: '{SSCDO.Name}'"));
+            Globals.DebugPrint(new StringBuilder($"{Indent} i={inde} SSCDO.Name: '{SSCDO.Value}'"));
             for (int i = 0; i <= SSCDO.Options.Count - 1; i++)
             {
                 SocketSlashCommandDataOption SSCDO_ = SSCDO.Options.ElementAt(i);
@@ -356,28 +383,28 @@ namespace WasIchHoerePlaylist.CommandHandling
                 var ExistingCommandsGuild = await guild.GetApplicationCommandsAsync();
                 var ExistingCommandsGlobal = await APIs.MyDiscord.MyDiscordClient.GetGlobalApplicationCommandsAsync();
 
-                Console.WriteLine("Removing ALL GUILD commands...");
+                Globals.DebugPrint("Removing ALL GUILD commands...");
                 foreach (var ExistingGuildCommand in ExistingCommandsGuild)
                 {
-                    Console.WriteLine("---- Removing existing GUILD Commands: '" + ExistingGuildCommand.Name + "'...");
+                    Globals.DebugPrint("---- Removing existing GUILD Commands: '" + ExistingGuildCommand.Name + "'...");
                     await ExistingGuildCommand.DeleteAsync();
-                    Console.WriteLine("---- DONE Removing existing GUILD Commands: '" + ExistingGuildCommand.Name + "'...");
+                    Globals.DebugPrint("---- DONE Removing existing GUILD Commands: '" + ExistingGuildCommand.Name + "'...");
                 }
-                Console.WriteLine("Removing ALL GUILD commands...DONE");
+                Globals.DebugPrint("Removing ALL GUILD commands...DONE");
 
-                Console.WriteLine("Removing ALL GLOBAL commands...");
+                Globals.DebugPrint("Removing ALL GLOBAL commands...");
 
                 foreach (var ExistingGlobalCommand in ExistingCommandsGuild)
                 {
-                    Console.WriteLine("---- Removing existing GLOBAL Commands: '" + ExistingGlobalCommand.Name + "'...");
+                    Globals.DebugPrint("---- Removing existing GLOBAL Commands: '" + ExistingGlobalCommand.Name + "'...");
                     await ExistingGlobalCommand.DeleteAsync();
-                    Console.WriteLine("---- DONE Removing existing GLOBAL Commands: '" + ExistingGlobalCommand.Name + "'...");
+                    Globals.DebugPrint("---- DONE Removing existing GLOBAL Commands: '" + ExistingGlobalCommand.Name + "'...");
                 }
-                Console.WriteLine("Removing ALL GLOBAL commands...DONE");
+                Globals.DebugPrint("Removing ALL GLOBAL commands...DONE");
 
 
-                Console.WriteLine("Building ALL commands...");
-                Console.WriteLine("GlobalCommands: " + AreGlobalCommands);
+                Globals.DebugPrint("Building ALL commands...");
+                Globals.DebugPrint("GlobalCommands: " + AreGlobalCommands);
                 List<SlashCommandBuilder> AllCommands = new List<SlashCommandBuilder>();
                 List<Task> AllCommandsTasks = new List<Task>();
                 AllCommands.Add(CommandHelp);
@@ -411,7 +438,7 @@ namespace WasIchHoerePlaylist.CommandHandling
                 }
 
 
-                Console.WriteLine("Building ALL commands...DONE");
+                Globals.DebugPrint("Building ALL commands...DONE");
 
             }
             catch (Exception ex)
@@ -433,7 +460,7 @@ namespace WasIchHoerePlaylist.CommandHandling
         {
             try
             {
-                Console.WriteLine("Creating Command: '" + SCB.Name + "'...");
+                Globals.DebugPrint("Creating Command: '" + SCB.Name + "'...");
                 ApplicationCommandProperties ACP = SCB.Build();
                 if (SG == null)
                 {
@@ -443,7 +470,7 @@ namespace WasIchHoerePlaylist.CommandHandling
                 {
                     await SG.CreateApplicationCommandAsync(ACP);
                 }
-                Console.WriteLine("Creating Command: '" + SCB.Name + "' DONE");
+                Globals.DebugPrint("Creating Command: '" + SCB.Name + "' DONE");
             }
             catch (Exception e)
             {

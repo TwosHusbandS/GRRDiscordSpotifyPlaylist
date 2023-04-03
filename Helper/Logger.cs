@@ -45,7 +45,7 @@ namespace WasIchHoerePlaylist.Helper
         {
             string MyLogMessage = "[" + DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss") + "] - " + pLogMessage;
 
-            Console.WriteLine(MyLogMessage);
+            Globals.DebugPrint(MyLogMessage);
 
             bool LogToFile = false;
             bool LogToDiscord = false;
@@ -96,10 +96,10 @@ namespace WasIchHoerePlaylist.Helper
         public static void Log(Exception ex, int pLogLevel = 3, bool DontLogToFile = false, bool DontLogToDiscord = false)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine();
-            Console.WriteLine("---- ERROR:");
-            Console.WriteLine(ex.ToString());
-            Console.WriteLine();
+            Globals.DebugPrint();
+            Globals.DebugPrint("---- ERROR:");
+            Globals.DebugPrint(ex.ToString());
+            Globals.DebugPrint();
             Console.ResetColor();
 
             Log("----ERROR:\n" + ex.ToString(), pLogLevel, DontLogToFile, DontLogToDiscord);

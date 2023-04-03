@@ -15,7 +15,7 @@ using WasIchHoerePlaylist.Helper;
 //        private static async void SetUp()
 //        {
 
-Console.WriteLine("Hello World!");
+Globals.DebugPrint("Hello World!");
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 Logger.Init();
 Options.Init();

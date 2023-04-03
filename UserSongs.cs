@@ -86,7 +86,7 @@ namespace WasIchHoerePlaylist
                 if (ListOfUserSongs[i].UserID == pUserID)
                 {
                     // If SongCount is LESS THAN daily limit
-                    //Console.WriteLine("Me: '{0}', Daily Limit: '{1}'", ListOfUserSongs[i].SongCount, Options.USER_DAILY_LIMIT);
+                    //Globals.DebugPrint("Me: '{0}', Daily Limit: '{1}'", ListOfUserSongs[i].SongCount, Options.USER_DAILY_LIMIT);
                     if (ListOfUserSongs[i].SongCount >= Options.USER_DAILY_LIMIT)
                     {
                         // return false since user cant add more

@@ -91,8 +91,7 @@ namespace WasIchHoerePlaylist.APIs
         {
             _ = Task.Run(async () =>
             {
-                StringBuilder sb = new StringBuilder($"{MyDiscordClient.CurrentUser} is connected!");
-                Helper.Logger.Log(sb.ToString(), 1);
+                Helper.Logger.Log(new StringBuilder($"{MyDiscordClient.CurrentUser} is connected!").ToString());
             });
             return Task.CompletedTask;
         }
@@ -107,7 +106,6 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         private Task LogAsync(LogMessage log)
         {
-            StringBuilder sb = new StringBuilder($"{DateTime.Now,-19} [{log.Severity,8}] {log.Source}: {log.Message} {log.Exception}");
             int LogLevel = 0;
 
             // convert enum log.Severity to int Loglevel
@@ -126,11 +124,10 @@ namespace WasIchHoerePlaylist.APIs
                     break;
             }
 
-
             // Pass to Logging function if relevant
             if (LogLevel != 0)
             {
-                Helper.Logger.Log(sb.ToString(), LogLevel);
+                Helper.Logger.Log(new StringBuilder($"{DateTime.Now,-19} [{log.Severity,8}] {log.Source}: {log.Message} {log.Exception}").ToString(), LogLevel);
             }
 
             return Task.CompletedTask;
@@ -256,15 +253,23 @@ namespace WasIchHoerePlaylist.APIs
         public static async Task<RestUserMessage> SendMessage(string MyLogMessage, Helper.DiscordHelper.EmbedColors pEmbedColor = Helper.DiscordHelper.EmbedColors.NoEmbed)
         {
             RestUserMessage RUM;
-            if (pEmbedColor == Helper.DiscordHelper.EmbedColors.NoEmbed)
+            try
             {
-                RUM = await APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetTextChannel(Options.DISCORD_INTERNAL_CHANNEL).SendMessageAsync(MyLogMessage);
+                if (pEmbedColor == Helper.DiscordHelper.EmbedColors.NoEmbed)
+                {
+                    RUM = await APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetTextChannel(Options.DISCORD_INTERNAL_CHANNEL).SendMessageAsync(MyLogMessage);
+                }
+                else
+                {
+                    RUM = await SendMessage(Helper.DiscordHelper.BuildEmbed(null, MyLogMessage, null, pEmbedColor));
+                }
+                return RUM;
             }
-            else
+            catch (Exception ex)
             {
-                RUM = await SendMessage(Helper.DiscordHelper.BuildEmbed(null, MyLogMessage, null, pEmbedColor));
+                Helper.Logger.Log(ex, 3, false, true);
             }
-            return RUM;
+            return null;
         }
 
 
@@ -275,18 +280,22 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         public static async Task<RestUserMessage> SendMessage(Embed pEmbed)
         {
-            RestUserMessage RUM;
-            RUM = await APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetTextChannel(Options.DISCORD_INTERNAL_CHANNEL).SendMessageAsync(embed: pEmbed);
-            return RUM;
+            try
+            {
+                RestUserMessage RUM;
+                RUM = await APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetTextChannel(Options.DISCORD_INTERNAL_CHANNEL).SendMessageAsync(embed: pEmbed);
+                return RUM;
+            }
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex, 3, false, true);
+            }
+            return null;
         }
 
-
-
         #endregion
-    
-    
-    
-    
-    
+
+
+
     }
 }

@@ -157,7 +157,6 @@ namespace WasIchHoerePlaylist
                 Output(Helper.DiscordHelper.BuildEmbed(command, "Error appying Backup", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed), command);
                 Helper.Logger.Log(ex);
             }
-            return;
         }
 
 
@@ -295,7 +294,7 @@ namespace WasIchHoerePlaylist
                 }
                 else
                 {
-                    command.RespondAsync(embed: pEmbed);
+                    CommandHandling.MyCommandHandling.RespondAsync(command, pEmbed);
                 }
             }
             catch (Exception ex)

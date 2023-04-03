@@ -34,19 +34,19 @@ namespace WasIchHoerePlaylist.Helper
                     if ((int)response.StatusCode == 301 || (int)response.StatusCode == 302 || (int)response.StatusCode == 307 || (int)response.StatusCode == 308)
                     {
                         string uriString = response.Headers["Location"];
-                        //Console.WriteLine("Redirecting " + newurl + " to " + uriString + " because " + response.StatusCode);
+                        //Globals.DebugPrint("Redirecting " + newurl + " to " + uriString + " because " + response.StatusCode);
                         newurl = uriString;
                         // and keep going
                     }
                     else
                     {
-                        //Console.WriteLine("Not redirecting " + url + " because " + response.StatusCode);
+                        //Globals.DebugPrint("Not redirecting " + url + " because " + response.StatusCode);
                         redirecting = false;
                     }
                 }
                 catch (Exception ex)
                 {
-                    //Console.WriteLine("Not redirecting " + url + " because SHIT CRASHED");
+                    //Globals.DebugPrint("Not redirecting " + url + " because SHIT CRASHED");
                     //Exceptions.ExceptionRecord.ReportWarning(ex); // change this to your own
                     redirecting = false;
                 }

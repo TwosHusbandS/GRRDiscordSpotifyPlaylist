@@ -159,11 +159,6 @@ namespace WasIchHoerePlaylist
 
 
 
-  
-
-
-
-
 
         public static void DebugPrint()
         {
@@ -172,11 +167,13 @@ namespace WasIchHoerePlaylist
 
         public static void DebugPrint(string strng)
         {
-            Console.WriteLine(strng);
+            Helper.Logger.Log(strng, 1);
         }
 
-
-     
+        public static void DebugPrint(StringBuilder sb)
+        {
+            DebugPrint(sb.ToString());
+        }
 
 
     }

@@ -21,7 +21,7 @@ namespace WasIchHoerePlaylist.CommandHandling
         {
             List<KeyValuePair<string, string>> MyList = new List<KeyValuePair<string, string>>();
             MyList.Add(new KeyValuePair<string, string>("Showing all Commands", GetHelpCommandOutput()));
-            command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, null, MyList, Helper.DiscordHelper.EmbedColors.NormalEmbed));
+            MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, null, MyList, Helper.DiscordHelper.EmbedColors.NormalEmbed));
 
             return Task.CompletedTask;
         }

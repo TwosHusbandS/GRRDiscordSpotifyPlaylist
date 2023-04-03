@@ -20,7 +20,7 @@ namespace WasIchHoerePlaylist.CommandHandling
             // Permission check
             if (UserIsAdmin)
             {
-                await command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Will try to Shutdown the Bot...Wish me luck lmao", null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
+                await MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Will try to Shutdown the Bot...Wish me luck lmao", null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
                 await Task.Delay(500);
                 Helper.LinuxHelper.ShutdownService();
             }

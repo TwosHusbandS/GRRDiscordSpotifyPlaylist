@@ -19,7 +19,7 @@ namespace WasIchHoerePlaylist.CommandHandling
         /// <returns></returns>
         static Task HandleCommand_Status(SocketSlashCommand command, bool UserIsAdmin)
         {
-            command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Version: " + Globals.MyVersion + "\n\nThe bot has been alive and healthy for:\n" + GetFormattedStringFromTS(Globals.sw.Elapsed), null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
+            MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Version: " + Globals.MyVersion + "\n\nThe bot has been alive and healthy for:\n" + GetFormattedStringFromTS(Globals.sw.Elapsed), null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
             return Task.CompletedTask;
         }
 

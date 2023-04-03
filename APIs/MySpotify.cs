@@ -132,16 +132,22 @@ namespace WasIchHoerePlaylist.APIs
 
         #region Playlist Get Songs
 
+
         /// <summary>
         /// Gets all PlayableItems from a Spotify Playlist
         /// </summary>
         /// <returns></returns>
-        public static async Task<List<PlaylistTrack<IPlayableItem>>> GetAllPlaylistTracks()
+        public static async Task<List<PlaylistTrack<IPlayableItem>>> GetAllPlaylistPlayableItems(string PlaylistID)
         {
+            if (String.IsNullOrWhiteSpace(PlaylistID))
+            {
+                PlaylistID = Options.SPOTIFY_PLAYLIST_ID;
+            }
+
             // Return all playableItems of a playlist, order by datetime when it was added.First item was added the longest ago.
             try
             {
-                Paging<PlaylistTrack<IPlayableItem>> MyTracks = await MySpotifyClient.Playlists.GetItems(Options.SPOTIFY_PLAYLIST_ID);
+                Paging<PlaylistTrack<IPlayableItem>> MyTracks = await MySpotifyClient.Playlists.GetItems(PlaylistID);
                 return (MyTracks.Items.OrderBy(x => x.AddedAt).ToList());
             }
             catch (Exception ex)
@@ -164,7 +170,7 @@ namespace WasIchHoerePlaylist.APIs
         /// Gets all FullTracks from a Spotify Playlist
         /// </summary>
         /// <returns></returns>
-        public static async Task<List<FullTrack>> GetAllPlaylistFullTracks()
+        public static async Task<List<FullTrack>> GetAllPlaylistFullTracks(string PlaylistID = "")
         {
             // Init and declare list for return
             List<FullTrack> FullTracks = new List<FullTrack>();
@@ -172,7 +178,7 @@ namespace WasIchHoerePlaylist.APIs
             try
             {
                 // loop through playable items, if fullTrack, add to return list
-                List<PlaylistTrack<IPlayableItem>> Tracks = await GetAllPlaylistTracks();
+                List<PlaylistTrack<IPlayableItem>> Tracks = await GetAllPlaylistPlayableItems(PlaylistID);
                 for (int i = 0; i <= Tracks.Count - 1; i++)
                 {
                     if (Tracks[i].Track is FullTrack Track)
@@ -213,6 +219,7 @@ namespace WasIchHoerePlaylist.APIs
                 Helper.Logger.Log(ex);
             }
         }
+
 
 
         /// <summary>
@@ -414,11 +421,14 @@ namespace WasIchHoerePlaylist.APIs
                 // return that track as Uri
                 Paging<SimpleTrack> MyAlbumTracks = MyFullAlbum.Tracks;
 
-                // if only has one track
-                if (MyAlbumTracks.Items.Count == 1)
+                if (MyAlbumTracks.Items != null)
                 {
-                    // return that uri
-                    return MyAlbumTracks.Items[0].Uri;
+                    // if only has one track
+                    if (MyAlbumTracks.Items.Count == 1)
+                    {
+                        // return that uri
+                        return MyAlbumTracks.Items[0].Uri;
+                    }
                 }
             }
             catch (Exception ex)
@@ -438,7 +448,7 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         public static async Task<string> GetUriFromSearch(string SearchString)
         {
-            if (String.IsNullOrEmpty(SearchString))
+            if (String.IsNullOrWhiteSpace(SearchString))
             {
                 return "";
             }
@@ -452,11 +462,15 @@ namespace WasIchHoerePlaylist.APIs
 
                 // Convert SearchResults into FullTracks
                 List<FullTrack> mySpotifySearchReturns = new List<FullTrack>();
-                foreach (var tmp in MySearchResponse.Tracks.Items)
+
+                if (MySearchResponse.Tracks.Items != null)
                 {
-                    if (tmp is FullTrack Track)
+                    foreach (var tmp in MySearchResponse.Tracks.Items)
                     {
-                        mySpotifySearchReturns.Add(tmp);
+                        if (tmp is FullTrack Track)
+                        {
+                            mySpotifySearchReturns.Add(tmp);
+                        }
                     }
                 }
 
@@ -473,7 +487,7 @@ namespace WasIchHoerePlaylist.APIs
                     // get comparison score
                     int currComparison = Helper.FileHandling.getLevenshteinDistance(SpotifyResultComparisonString, SearchString);
 
-                    //Console.WriteLine("SearchString: '{0}', SpotifySearchResult: '{1}', LevenshteinDistance: '{2}'", SearchString, SpotifyResultComparisonString, currComparison);
+                    //Globals.DebugPrint("SearchString: '{0}', SpotifySearchResult: '{1}', LevenshteinDistance: '{2}'", SearchString, SpotifyResultComparisonString, currComparison);
 
 
                     // Do normal logic with getting the best result
@@ -533,6 +547,10 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         public static async Task<bool> IsSongInPlaylist(string SongUri)
         {
+            if (String.IsNullOrWhiteSpace(SongUri))
+            {
+                return false;
+            }
             try
             {
                 List<FullTrack> FullTracks = await GetAllPlaylistFullTracks();

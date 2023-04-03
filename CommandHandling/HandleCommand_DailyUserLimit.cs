@@ -51,7 +51,7 @@ namespace WasIchHoerePlaylist.CommandHandling
             }
             catch (Exception ex)
             {
-                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error processing DailyUserLimit command", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
+                MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Error processing DailyUserLimit command", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
                 Helper.Logger.Log(ex);
             }
             return Task.CompletedTask;
@@ -91,7 +91,7 @@ namespace WasIchHoerePlaylist.CommandHandling
                     }
                     output += "\n\nIt is currently: " + DateTime.Now.ToString("HH:mm") + " o'clock (24hrs).";
 
-                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, output, null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
+                    MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, output, null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
                 }
                 // only show for one user
                 else if (Parameter[0].Key == "user")
@@ -101,13 +101,13 @@ namespace WasIchHoerePlaylist.CommandHandling
                     string output = "";
                     output += "The user: '" + Helper.DiscordHelper.GetUserTextFromSGU(SGU) + "'\nhas added '" + Songs + "' of their allowed: '" + Options.USER_DAILY_LIMIT + "' Songs today.";
                     output += "\n\nIt is currently: " + DateTime.Now.ToString("HH:mm") + " o'clock (24hrs).";
-                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, output, null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
+                    MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, output, null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
                 }
             }
             catch (Exception ex)
             {
                 Helper.Logger.Log(ex);
-                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error while showing DailyUserLimit", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
+                MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Error while showing DailyUserLimit", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
             }
             return Task.CompletedTask;
         }
@@ -127,7 +127,7 @@ namespace WasIchHoerePlaylist.CommandHandling
                 if (Parameter[0].Key == "all")
                 {
                     UserSongs.Reset();
-                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Just reset the amount of Songs for all Users", null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
+                    MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Just reset the amount of Songs for all Users", null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
 
                 }
                 // reset one user
@@ -135,13 +135,13 @@ namespace WasIchHoerePlaylist.CommandHandling
                 {
                     SocketGuildUser SGU = (SocketGuildUser)command.Data.Options.First().Options.First().Options.First().Value;
                     UserSongs.Reset(SGU.Id);
-                    command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Just reset the amount of Songs that were added by:\n" + Helper.DiscordHelper.GetUserTextFromSGU(SGU), null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
+                    MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Just reset the amount of Songs that were added by:\n" + Helper.DiscordHelper.GetUserTextFromSGU(SGU), null, Helper.DiscordHelper.EmbedColors.NormalEmbed));
                 }
             }
             catch (Exception ex)
             {
                 Helper.Logger.Log(ex);
-                command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "Error while resetting DailyUserLimit", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
+                MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "Error while resetting DailyUserLimit", null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
             }
             return Task.CompletedTask;
         }
@@ -156,7 +156,7 @@ namespace WasIchHoerePlaylist.CommandHandling
         public static Task HandleDailyUserLimit_Set(SocketSlashCommand command, List<KeyValuePair<string, object>> Parameter)
         {
             string Command = "/settings limit limit_type:user_daily_limit number:";
-            command.RespondAsync(embed: Helper.DiscordHelper.BuildEmbed(command, "To change how many songs a User can add per day, please use:\n" + Command, null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
+            MyCommandHandling.RespondAsync(command, Helper.DiscordHelper.BuildEmbed(command, "To change how many songs a User can add per day, please use:\n" + Command, null, Helper.DiscordHelper.EmbedColors.ErrorEmbed));
             return Task.CompletedTask;
         }
     }

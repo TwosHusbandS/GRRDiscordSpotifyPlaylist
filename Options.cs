@@ -156,7 +156,7 @@ namespace WasIchHoerePlaylist
                 logstring += " Options.MAX_LEVENSHTEIN_DISTANCE='" + Options.MAX_LEVENSHTEIN_DISTANCE + "'";
                 logstring += " Options.SHOW_ACTIVITY_INTERNAL='" + Options.SHOW_ACTIVITY_INTERNAL + "'";
             
-                Helper.Logger.Log(logstring);
+                Helper.Logger.Log(logstring, 1, false, true);
             }
             catch (Exception e)
             {
