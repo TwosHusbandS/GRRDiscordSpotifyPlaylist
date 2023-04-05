@@ -29,12 +29,11 @@ namespace WasIchHoerePlaylist.Helper
         /// <returns></returns>
         public static string GetTrackIdFromTrackUri(string Uri)
         {
-            string rtrn = "";
             try
             {
                 if (Uri.Contains(':'))
                 {
-                    rtrn = Uri.Substring(Uri.LastIndexOf(':') + 1);
+                    return Uri.Substring(Uri.LastIndexOf(':') + 1);
                 }
             }
             catch (Exception ex)
@@ -113,7 +112,18 @@ namespace WasIchHoerePlaylist.Helper
         /// <returns></returns>
         public static string GetTrackString(FullTrack ft)
         {
-            return GetArtistString(ft, ", ") + " - " + ft.Name + " (" + ft.Album.Name + ")";
+            try
+            {
+                string artist = GetArtistString(ft, ", ");
+                string name = ft.Name;
+                string AlbumName = ft.Album.Name;
+                return artist + " - " + name + " (" + AlbumName + ")";
+            }
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex);
+            }
+            return "Failed to convert. GetTrackString.";
         }
 
     }

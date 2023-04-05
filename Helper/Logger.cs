@@ -43,9 +43,16 @@ namespace WasIchHoerePlaylist.Helper
         /// <param name="pLogMessage"></param>
         public static Task Log(string pLogMessage, int pLogLevel = 1, bool DontLogToFile = false, bool DontLogToDiscord = false)
         {
+
+            if (String.IsNullOrWhiteSpace(pLogMessage))
+            {
+                return Task.CompletedTask;
+            }
+
+
             string MyLogMessage = "[" + DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss") + "] - " + pLogMessage;
 
-            Globals.DebugPrint(MyLogMessage);
+            Console.WriteLine(MyLogMessage);
 
             bool LogToFile = false;
             bool LogToDiscord = false;
@@ -95,12 +102,12 @@ namespace WasIchHoerePlaylist.Helper
         /// <param name="LogToDiscord"></param>
         public static void Log(Exception ex, int pLogLevel = 3, bool DontLogToFile = false, bool DontLogToDiscord = false)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Globals.DebugPrint();
-            Globals.DebugPrint("---- ERROR:");
-            Globals.DebugPrint(ex.ToString());
-            Globals.DebugPrint();
-            Console.ResetColor();
+            //Console.ForegroundColor = ConsoleColor.Red;
+            //Console.WriteLine();
+            //Console.WriteLine("---- ERROR:");
+            //Console.WriteLine(ex.ToString());
+            //Console.WriteLine();
+            //Console.ResetColor();
 
             Log("----ERROR:\n" + ex.ToString(), pLogLevel, DontLogToFile, DontLogToDiscord);
         }

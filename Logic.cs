@@ -186,7 +186,11 @@ namespace WasIchHoerePlaylist
                                     else if (Type == "album")
                                     {
                                         // method that checks if album only has one track etc.
-                                        MyUris.Add(await APIs.MySpotify.GetTrackUriFromAlbum(Id));
+                                        string tmp = await APIs.MySpotify.GetTrackUriFromAlbum(Id);
+                                        if (!String.IsNullOrWhiteSpace(tmp))
+                                        {
+                                            MyUris.Add(tmp);
+                                        }
                                     }
                                 }
                             }
@@ -242,9 +246,7 @@ namespace WasIchHoerePlaylist
         {
             try
             {
-                string PreFix = "[" + DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss") + "] - ";
-
-                Globals.DebugPrint(PreFix + " Message by '" + messageParam.Author + "' in '" + messageParam.Channel + "': '" + messageParam.Content + "'");
+                Globals.DebugPrint("Message by '" + messageParam.Author + "' in '" + messageParam.Channel + "': '" + messageParam.Content + "'");
 
                 List<string> MyUris = new List<string>();
 
@@ -284,7 +286,11 @@ namespace WasIchHoerePlaylist
 
 
                 // Do the Logic to get the Uris
-                MyUris.Add(await GetFromEmbed(messageParam));
+                string tmp = await GetFromEmbed(messageParam);
+                if (!String.IsNullOrEmpty(tmp))
+                {
+                    MyUris.Add(tmp);
+                }
                 foreach (string tmpUri in await GetFromContent(messageParam.Content))
                 {
                     MyUris.Add(tmpUri);
@@ -316,7 +322,6 @@ namespace WasIchHoerePlaylist
         {
             try
             {
-
                 // List of Real Uris
                 List<string> MyUrisInput = MyUris;
                 Helper.ListHelper.RemoveNullEmptyWhitespaceDuplicateStringList(ref MyUrisInput);
@@ -360,6 +365,7 @@ namespace WasIchHoerePlaylist
                 }
 
 
+
                 // if an actual User and not added Via Command
                 if (UserID > 0)
                 {
@@ -377,7 +383,6 @@ namespace WasIchHoerePlaylist
                     // Add count to UserSong object
                     UserSongs.AddUserSongs(UserID, UrisToAdd.Count);
                 }
-
 
                 // Can we continue with our List
                 if (Helper.ListHelper.CanContinueWithList(ref UrisToAdd))
@@ -415,6 +420,8 @@ namespace WasIchHoerePlaylist
                                     tmp.Add(new KeyValuePair<string, string>("Link:", tmpLink));
                                 }
                             }
+
+
                             // Add to output
                             tmp.Add(new KeyValuePair<string, string>(Globals.SongAddedDescription, Helper.SpotifyHelper.GetTrackString(AddedTracks[i])));
                             tmp.Add(new KeyValuePair<string, string>(Globals.SongAddedTopline, AddedTracks[i].Uri));
@@ -488,7 +495,7 @@ namespace WasIchHoerePlaylist
                 {
                     // Dont output to channel...could be normal text message
                     string tmpLink = @"https://discord.com/channels/" + Options.DISCORD_GUILD_ID + "/" + messageParam.Channel.Id + "/" + messageParam.Id;
-                    Globals.DebugPrint("No songs in that message (" + tmpLink + ")");
+                    Globals.DebugPrint("Z No songs in that message (" + tmpLink + ")");
                 }
             }
             catch (Exception ex)

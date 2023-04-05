@@ -28,12 +28,64 @@ namespace WasIchHoerePlaylist.Helper
         }
 
 
+
+        public static string Bash(string cmd)
+        {
+            var escapedArgs = cmd.Replace("\"", "\\\"");
+
+            var process = new Process()
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "/bin/bash",
+                    Arguments = $"-c \"{escapedArgs}\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                }
+            };
+
+            process.Start();
+            string result = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+
+            return result;
+        }
+
+
+        public static string RunCommandWithBash(string command)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo();
+                psi.FileName = "/bin/bash";
+                psi.Arguments = command;
+                psi.RedirectStandardOutput = true;
+                psi.UseShellExecute = false;
+                psi.CreateNoWindow = true;
+
+                using var process = Process.Start(psi);
+
+                process.WaitForExit();
+
+                var output = process.StandardOutput.ReadToEnd();
+
+                return output;
+            }
+            catch (Exception ex)
+            {
+                Helper.Logger.Log(ex);
+            }
+            return "";
+        }
+
+
         /// <summary>
         /// Restarts the Bot itself (linux service)
         /// </summary>
         public static void RestartService()
         {
-            Helper.LinuxHelper.ExecuteLinuxCommand("systemctl restart grrdiscordspotifyplaylist.service");
+            Helper.LinuxHelper.RunCommandWithBash("systemctl restart grrdiscordspotifyplaylist.service");
         }
 
 

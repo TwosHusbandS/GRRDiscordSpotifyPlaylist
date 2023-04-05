@@ -145,10 +145,14 @@ namespace WasIchHoerePlaylist.APIs
         {
             _ = Task.Run(async () =>
             {
-                if (messageParam.Channel.Id == Options.DISCORD_PUBLIC_CHANNEL ||
-                messageParam.Channel.Id == Options.DISCORD_INTERNAL_CHANNEL)
+                // #832645469460365322 test channel ID
+
+                if (messageParam.Channel.Id == Options.DISCORD_PUBLIC_CHANNEL)
                 {
-                    Logic.ProcessPotentialSong(messageParam, prevMessageParam);
+                    if (messageParam.Author.Id != Globals.OurBotID)
+                    {
+                        Logic.ProcessPotentialSong(messageParam, prevMessageParam);
+                    }
                     prevMessageParam = messageParam;
                 }
             });
@@ -252,18 +256,38 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         public static async Task<RestUserMessage> SendMessage(string MyLogMessage, Helper.DiscordHelper.EmbedColors pEmbedColor = Helper.DiscordHelper.EmbedColors.NoEmbed)
         {
+            if (String.IsNullOrWhiteSpace(MyLogMessage))
+            {
+                Helper.Logger.Log("Cant SendMessage, LogMessage is null/empty", 3);
+            }
+
             RestUserMessage RUM;
             try
             {
-                if (pEmbedColor == Helper.DiscordHelper.EmbedColors.NoEmbed)
+                if (APIs.MyDiscord.MyDiscordClient != null)
                 {
-                    RUM = await APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetTextChannel(Options.DISCORD_INTERNAL_CHANNEL).SendMessageAsync(MyLogMessage);
+                    if (pEmbedColor == Helper.DiscordHelper.EmbedColors.NoEmbed)
+                    {
+                        //Console.WriteLine("Weird");
+                        //Console.WriteLine(APIs.MyDiscord.MyDiscordClient.Latency);
+                        //Console.WriteLine(MyLogMessage.Length);
+                        //Console.WriteLine(pEmbedColor);
+                        //Console.WriteLine("Weird");
+                        //Console.WriteLine("");
+
+                        // this erros three times:
+                        //  [    Info] Discord: Discord.Net v3.9.0 (API v10)
+                        //  [    Info] Gateway: Connecting
+                        //  [    Info] Gateway: Connected
+
+                        RUM = await APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetTextChannel(Options.DISCORD_INTERNAL_CHANNEL).SendMessageAsync(MyLogMessage);
+                    }
+                    else
+                    {
+                        RUM = await SendMessage(Helper.DiscordHelper.BuildEmbed(null, MyLogMessage, null, pEmbedColor));
+                    }
+                    return RUM;
                 }
-                else
-                {
-                    RUM = await SendMessage(Helper.DiscordHelper.BuildEmbed(null, MyLogMessage, null, pEmbedColor));
-                }
-                return RUM;
             }
             catch (Exception ex)
             {
