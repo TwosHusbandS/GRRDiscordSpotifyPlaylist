@@ -82,8 +82,8 @@ namespace WasIchHoerePlaylist.CommandHandling
                             SocketGuildUser SGU = APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetUser(US.UserID);
 
                             output = output + Helper.DiscordHelper.GetUserTextFromSGU(SGU) + ": " + US.SongCount;
-                            output += "\n\nAll users can add: '" + Options.USER_DAILY_LIMIT + "' per Day.\nAll other Users have not added a Song today.";
                         }
+                        output += "\n\nAll users can add: '" + Options.USER_DAILY_LIMIT + "' per Day.\nAll other Users have not added a Song today.";
                     }
                     else
                     {

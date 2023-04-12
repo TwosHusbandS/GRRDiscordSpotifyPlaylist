@@ -255,7 +255,7 @@ namespace WasIchHoerePlaylist
                 if (string.IsNullOrEmpty(authorr))
                 {
                     authorr = "FMBot";
-                }    
+                }
 
                 Globals.DebugPrint("Message by '" + authorr + "#" + messageParam.Author.Discriminator + "' in '" + messageParam.Channel + "': '" + messageParam.Content + "'");
 
@@ -333,6 +333,15 @@ namespace WasIchHoerePlaylist
         {
             try
             {
+                string tmpLink = "Unknown_Message_Link";
+
+                if (messageParam != null)
+                {
+                    tmpLink = @"https://discord.com/channels/" + Options.DISCORD_GUILD_ID + "/" + messageParam.Channel.Id + "/" + messageParam.Id;
+                }
+
+
+
                 // List of Real Uris
                 List<string> MyUrisInput = MyUris;
                 Helper.ListHelper.RemoveNullEmptyWhitespaceDuplicateStringList(ref MyUrisInput);
@@ -395,112 +404,13 @@ namespace WasIchHoerePlaylist
                     UserSongs.AddUserSongs(UserID, UrisToAdd.Count);
                 }
 
+                List<FullTrack> removedSongs = new List<FullTrack>();
                 // Can we continue with our List
                 if (Helper.ListHelper.CanContinueWithList(ref UrisToAdd))
                 {
                     // Add our Songs to playlist
                     await APIs.MySpotify.AddToPlaylist(UrisToAdd);
-                    List<FullTrack> removedSongs = await APIs.MySpotify.KeepSongLimit();
-
-                    // If we show internal activity
-                    if (Options.SHOW_ACTIVITY_INTERNAL)
-                    {
-                        // Get information
-                        List<FullTrack> AddedTracks = await APIs.MySpotify.GetTracksReponse(UrisToAdd);
-
-                        // loop through AddedTracks
-                        for (int i = 0; i <= AddedTracks.Count - 1; i++)
-                        {
-                            List<KeyValuePair<string, string>> tmp = new List<KeyValuePair<string, string>>();
-
-                            // if messageparam is NOT null, so we add organically and not via command
-                            if (!(messageParam == null))
-                            {
-                                // generate discord link to message
-                                string tmpLink = @"https://discord.com/channels/" + Options.DISCORD_GUILD_ID + "/" + messageParam.Channel.Id + "/" + messageParam.Id;
-
-                                // if we have an User (difference only in adding User to output)
-                                if (UserID > 0)
-                                {
-                                    SocketGuildUser SGU = APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetUser(UserID);
-                                    tmp.Add(new KeyValuePair<string, string>("User: " + Helper.DiscordHelper.GetUserTextFromSGU(SGU), "Link: " + tmpLink));
-                                }
-                                // If we dont
-                                else
-                                {
-                                    tmp.Add(new KeyValuePair<string, string>("Link:", tmpLink));
-                                }
-                            }
-
-
-                            // Add to output
-                            tmp.Add(new KeyValuePair<string, string>(Globals.SongAddedDescription, Helper.SpotifyHelper.GetTrackString(AddedTracks[i])));
-                            tmp.Add(new KeyValuePair<string, string>(Globals.SongAddedTopline, AddedTracks[i].Uri));
-
-                            // output
-                            Discord.Rest.RestUserMessage RUM = await APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, null, tmp, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
-
-                            // Add reaction to the message
-                            if (RUM != null)
-                            {
-                                await RUM.AddReactionAsync(Globals.MyReactionEmote);
-                            }
-                        }
-
-
-                        // If we have songs we could not add because they were in the playlist already
-                        if (AlreadyExistingUris.Count > 0)
-                        {
-                            List<FullTrack> TResponseDoubled = await APIs.MySpotify.GetTracksReponse(AlreadyExistingUris);
-                            string sth = "Unfortunately were not able to add the following Songs,\nbecause they are in the Playlist already";
-                            List<KeyValuePair<string, string>> outputlist = new List<KeyValuePair<string, string>>();
-                            for (int i = 0; i <= TResponseDoubled.Count - 1; i++)
-                            {
-                                outputlist.Add(new KeyValuePair<string, string>(Helper.SpotifyHelper.GetTrackString(TResponseDoubled[i]), TResponseDoubled[i].Uri));
-                            }
-                            APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, sth, outputlist, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
-                        }
-
-
-
-                        // If the UserID is someone
-                        if (UserID > 0)
-                        {
-                            // If we actually have Uris
-                            if (UrisNotInLimit.Count > 0)
-                            {
-                                // Output all songs we could not add due to daily limit
-                                List<FullTrack> TResponseNotAdding = await APIs.MySpotify.GetTracksReponse(UrisNotInLimit);
-                                SocketGuildUser SGU = APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetUser(UserID);
-                                string sth = "Unfortunately were not able to add the following Songs,\nbecause the User: " + Helper.DiscordHelper.GetUserTextFromSGU(SGU) + "\nhas reached their daily limit of " + Options.USER_DAILY_LIMIT + " Songs.";
-                                List<KeyValuePair<string, string>> outputlist = new List<KeyValuePair<string, string>>();
-                                for (int i = 0; i <= TResponseNotAdding.Count - 1; i++)
-                                {
-                                    outputlist.Add(new KeyValuePair<string, string>(Helper.SpotifyHelper.GetTrackString(TResponseNotAdding[i]), TResponseNotAdding[i].Uri));
-                                }
-                                APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, sth, outputlist, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
-                            }
-                        }
-
-
-                        // Removed Songs for Playlist Number of Songs limit
-                        if (removedSongs.Count > 0)
-                        {
-                            List<KeyValuePair<string, string>> OutputList = new List<KeyValuePair<string, string>>();
-                            string Output = "";
-                            for (int i = 0; i <= removedSongs.Count - 1; i++)
-                            {
-                                Output += Helper.SpotifyHelper.GetTrackString(removedSongs[i]);
-                                if (i < removedSongs.Count - 1)
-                                {
-                                    Output += "\n";
-                                }
-                            }
-
-                            OutputList.Add(new KeyValuePair<string, string>("In Order to keep the Song limit we had to remove the following Songs:", Output));
-                            APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, null, OutputList, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
-                        }
-                    }
+                    removedSongs = await APIs.MySpotify.KeepSongLimit();
                 }
                 else
                 {
@@ -508,8 +418,113 @@ namespace WasIchHoerePlaylist
                     int NotInLimit = UrisNotInLimit.Count;
 
                     // Dont output to channel...could be normal text message
-                    string tmpLink = @"https://discord.com/channels/" + Options.DISCORD_GUILD_ID + "/" + messageParam.Channel.Id + "/" + messageParam.Id;
                     Globals.DebugPrint("No songs to add from that message (" + tmpLink + "). For Context: " + AlreadyExisting + " Songs were aready present in the playlist and " + NotInLimit + " songs were not added because the User has reached their daily limit.");
+                }
+
+
+                // this is here and not "if (Helper.ListHelper.CanContinueWithList(ref UrisToAdd))" above
+                // because this should be shown even if we can not add Uris to playlist
+                if (Options.SHOW_ACTIVITY_INTERNAL)
+                {
+                    // ADDED TRACKS
+
+                    // Get information
+                    List<FullTrack> AddedTracks = await APIs.MySpotify.GetTracksReponse(UrisToAdd);
+
+                    // loop through AddedTracks
+                    for (int i = 0; i <= AddedTracks.Count - 1; i++)
+                    {
+                        List<KeyValuePair<string, string>> tmp = new List<KeyValuePair<string, string>>();
+
+                        // if messageparam is NOT null, so we add organically and not via command
+                        if (!(messageParam == null))
+                        {
+                            // if we have an User (difference only in adding User to output)
+                            if (UserID > 0)
+                            {
+                                SocketGuildUser SGU = APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetUser(UserID);
+                                tmp.Add(new KeyValuePair<string, string>("User: " + Helper.DiscordHelper.GetUserTextFromSGU(SGU), "Link: " + tmpLink));
+                            }
+                            // If we dont
+                            else
+                            {
+                                tmp.Add(new KeyValuePair<string, string>("Link:", tmpLink));
+                            }
+                        }
+
+
+                        // Add to output
+                        tmp.Add(new KeyValuePair<string, string>(Globals.SongAddedDescription, Helper.SpotifyHelper.GetTrackString(AddedTracks[i])));
+                        tmp.Add(new KeyValuePair<string, string>(Globals.SongAddedTopline, AddedTracks[i].Uri));
+
+                        // output
+                        Discord.Rest.RestUserMessage RUM = await APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, null, tmp, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
+
+                        // Add reaction to the message
+                        if (RUM != null)
+                        {
+                            await RUM.AddReactionAsync(Globals.MyReactionEmote);
+                        }
+                    }
+
+
+
+
+
+                    // If we have songs we could not add because they were in the playlist already
+                    if (AlreadyExistingUris.Count > 0)
+                    {
+                        List<FullTrack> TResponseDoubled = await APIs.MySpotify.GetTracksReponse(AlreadyExistingUris);
+                        string sth = "Unfortunately were not able to add the following Songs,\nfrom: " + tmpLink + " \nbecause they are in the Playlist already";
+                        List<KeyValuePair<string, string>> outputlist = new List<KeyValuePair<string, string>>();
+                        for (int i = 0; i <= TResponseDoubled.Count - 1; i++)
+                        {
+                            outputlist.Add(new KeyValuePair<string, string>(Helper.SpotifyHelper.GetTrackString(TResponseDoubled[i]), TResponseDoubled[i].Uri));
+                        }
+                        APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, sth, outputlist, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
+                    }
+
+
+
+                    // Limit
+                    // If the UserID is someone
+                    if (UserID > 0)
+                    {
+                        // If we actually have Uris
+                        if (UrisNotInLimit.Count > 0)
+                        {
+                            // Output all songs we could not add due to daily limit
+                            List<FullTrack> TResponseNotAdding = await APIs.MySpotify.GetTracksReponse(UrisNotInLimit);
+                            SocketGuildUser SGU = APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetUser(UserID);
+                            string sth = "Unfortunately were not able to add the following Songs,\nfrom: " + tmpLink + " \nbecause the User: " + Helper.DiscordHelper.GetUserTextFromSGU(SGU) + "\nhas reached their daily limit of " + Options.USER_DAILY_LIMIT + " Songs.";
+                            List<KeyValuePair<string, string>> outputlist = new List<KeyValuePair<string, string>>();
+                            for (int i = 0; i <= TResponseNotAdding.Count - 1; i++)
+                            {
+                                outputlist.Add(new KeyValuePair<string, string>(Helper.SpotifyHelper.GetTrackString(TResponseNotAdding[i]), TResponseNotAdding[i].Uri));
+                            }
+                            APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, sth, outputlist, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
+                        }
+                    }
+
+
+
+                    // Removed Songs for Playlist Number of Songs limit
+                    if (removedSongs.Count > 0)
+                    {
+                        List<KeyValuePair<string, string>> OutputList = new List<KeyValuePair<string, string>>();
+                        string Output = "";
+                        for (int i = 0; i <= removedSongs.Count - 1; i++)
+                        {
+                            Output += Helper.SpotifyHelper.GetTrackString(removedSongs[i]);
+                            if (i < removedSongs.Count - 1)
+                            {
+                                Output += "\n";
+                            }
+                        }
+
+                        OutputList.Add(new KeyValuePair<string, string>("In Order to keep the Song limit we had to remove the following Songs:", Output));
+                        APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, null, OutputList, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
+                    }
                 }
             }
             catch (Exception ex)

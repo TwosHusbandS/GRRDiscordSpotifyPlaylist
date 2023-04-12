@@ -147,8 +147,8 @@ namespace WasIchHoerePlaylist.APIs
             {
                 // #832645469460365322 test channel ID
 
-                if (messageParam.Channel.Id == Options.DISCORD_PUBLIC_CHANNEL)
-                //if (messageParam.Channel.Id == 832645469460365322)
+                //if (messageParam.Channel.Id == Options.DISCORD_PUBLIC_CHANNEL)
+                if (messageParam.Channel.Id == 832645469460365322)
                 {
                     if (messageParam.Author.Id != Globals.OurBotID)
                     {

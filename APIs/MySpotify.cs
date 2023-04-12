@@ -519,6 +519,7 @@ namespace WasIchHoerePlaylist.APIs
                             Descripton = Descripton + "\nLevenshtein Comparison: '" + bestComparison + "'";
                             Descripton = Descripton + "\nLink of that: '" + MyClosestLink + "'";
                             APIs.MyDiscord.SendMessage(Helper.DiscordHelper.BuildEmbed(null, Descripton, null, Helper.DiscordHelper.EmbedColors.LoggingEmbed));
+                            return "";
                         }
 
                     }

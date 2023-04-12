@@ -52,7 +52,7 @@ namespace WasIchHoerePlaylist
                 // Match User ID
                 if (ListOfUserSongs[i].UserID == pUserID)
                 {
-                    // If SongCount is LESS THAN daily limit
+                    // If SongCount is LARGER THAN OR EQUAL daily limit
                     if (ListOfUserSongs[i].SongCount >= Options.USER_DAILY_LIMIT)
                     {
                         // We cant add anything
