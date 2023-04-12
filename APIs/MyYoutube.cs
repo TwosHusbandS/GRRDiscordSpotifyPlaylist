@@ -49,7 +49,7 @@ namespace WasIchHoerePlaylist.APIs
         /// </summary>
         /// <param name="videoId"></param>
         /// <returns></returns>
-        public static async Task<string> GetTitleFromVideoId(string videoId)
+        public static async Task<string> GetSearchStringFromYoutubeID(string videoId)
         {
             string rtrn = "";
             try

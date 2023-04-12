@@ -148,6 +148,7 @@ namespace WasIchHoerePlaylist.APIs
                 // #832645469460365322 test channel ID
 
                 if (messageParam.Channel.Id == Options.DISCORD_PUBLIC_CHANNEL)
+                //if (messageParam.Channel.Id == 832645469460365322)
                 {
                     if (messageParam.Author.Id != Globals.OurBotID)
                     {
@@ -280,7 +281,7 @@ namespace WasIchHoerePlaylist.APIs
                         //  [    Info] Gateway: Connecting
                         //  [    Info] Gateway: Connected
 
-                        RUM = await APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetTextChannel(Options.DISCORD_INTERNAL_CHANNEL).SendMessageAsync(MyLogMessage);
+                        RUM = await APIs.MyDiscord.MyDiscordClient.GetGuild(Options.DISCORD_GUILD_ID).GetTextChannel(Options.DISCORD_INTERNAL_CHANNEL).SendMessageAsync(MyLogMessage, flags: MessageFlags.SuppressEmbeds);
                     }
                     else
                     {

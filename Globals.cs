@@ -32,7 +32,7 @@ namespace WasIchHoerePlaylist
         public static IEmote MyReactionEmote = (IEmote)(new Emoji("❌"));
 
         // version of the bot for output in status
-        public static Version MyVersion = new Version(0, 0, 2, 0);
+        public static Version MyVersion = new Version(1, 0, 0, 0);
 
 
         /// <summary>

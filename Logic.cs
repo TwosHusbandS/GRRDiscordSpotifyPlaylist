@@ -121,6 +121,12 @@ namespace WasIchHoerePlaylist
 
             try
             {
+                if (string.IsNullOrEmpty(Content))
+                {
+                    return MyUris;
+                }
+
+
                 // weird spotify.link/Some_ID_That_Redirects_To_proper_URL
                 string anyLinkRegex = @"http[s]?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/=]*)";
                 string spotifyCinniRegex = @"http[s]?:\/\/spotify\.link\/([a-zA-Z0-9]{6,})";
@@ -152,7 +158,6 @@ namespace WasIchHoerePlaylist
                     {
                         // Set Content Variable to current link match
                         Content = MyAnyLinkMatch.Groups[0].Value;
-
 
                         // Spotify "Cinni" type Url
                         Regex MySpotifyCinniRegex = new Regex(spotifyCinniRegex);
@@ -215,7 +220,7 @@ namespace WasIchHoerePlaylist
                                     }
 
                                     // Call youtube API
-                                    tmp = await APIs.MyYoutube.GetTitleFromVideoId(tmp);
+                                    tmp = await APIs.MyYoutube.GetSearchStringFromYoutubeID(tmp);
 
                                     MyUris.Add(await APIs.MySpotify.GetUriFromSearch(tmp));
                                 }
@@ -246,7 +251,13 @@ namespace WasIchHoerePlaylist
         {
             try
             {
-                Globals.DebugPrint("Message by '" + messageParam.Author + "' in '" + messageParam.Channel + "': '" + messageParam.Content + "'");
+                string authorr = messageParam.Author.Username;
+                if (string.IsNullOrEmpty(authorr))
+                {
+                    authorr = "FMBot";
+                }    
+
+                Globals.DebugPrint("Message by '" + authorr + "#" + messageParam.Author.Discriminator + "' in '" + messageParam.Channel + "': '" + messageParam.Content + "'");
 
                 List<string> MyUris = new List<string>();
 
@@ -493,9 +504,12 @@ namespace WasIchHoerePlaylist
                 }
                 else
                 {
+                    int AlreadyExisting = AlreadyExistingUris.Count;
+                    int NotInLimit = UrisNotInLimit.Count;
+
                     // Dont output to channel...could be normal text message
                     string tmpLink = @"https://discord.com/channels/" + Options.DISCORD_GUILD_ID + "/" + messageParam.Channel.Id + "/" + messageParam.Id;
-                    Globals.DebugPrint("Z No songs in that message (" + tmpLink + ")");
+                    Globals.DebugPrint("No songs to add from that message (" + tmpLink + "). For Context: " + AlreadyExisting + " Songs were aready present in the playlist and " + NotInLimit + " songs were not added because the User has reached their daily limit.");
                 }
             }
             catch (Exception ex)

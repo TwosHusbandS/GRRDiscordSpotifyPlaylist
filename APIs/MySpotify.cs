@@ -338,13 +338,6 @@ namespace WasIchHoerePlaylist.APIs
                 // If  ID list is not empty / null etc.
                 if (Helper.ListHelper.CanContinueWithList(ref IDs))
                 {
-
-
-                    foreach (string ID in IDs)
-                    {
-                        Globals.DebugPrint("..........ID: " + ID);
-                    }
-
                     // request songs from spotify
                     TracksRequest TRequest = new TracksRequest(IDs);
                     TracksResponse TResponse = await MySpotifyClient.Tracks.GetSeveral(TRequest);

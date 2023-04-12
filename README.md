@@ -46,9 +46,10 @@ Shamelessly stolen from: https://github.com/othneildrew/Best-README-Template
 ## Built With
 
 * Pretty much built with straight C#, dotnet 6.0, multiplatform
-* Shoutout to [Google API .NET](https://github.com/googleapis/google-api-dotnet-client)
-* Shoutout to [SpotifyAPI-NET](https://github.com/JohnnyCrazy/SpotifyAPI-NET)
 * Shoutout to [Discord.Net](https://github.com/discord-net/Discord.Net)
+* Shoutout to [SpotifyAPI-NET](https://github.com/JohnnyCrazy/SpotifyAPI-NET)
+* Shoutout to [Google API .NET](https://github.com/googleapis/google-api-dotnet-client) (for youtube)
+* Shoutout to [CliWrap](https://github.com/Tyrrrz/CliWrap)
 * May the pain these caused me (due to my own fault) help someone else lmfao.
 * Did some small hackaround inside the project to get the ConfigFiles to copy to the correct directory. Unloud project to see. Prolly not best practice.
 
@@ -128,8 +129,8 @@ Builds a spotify Playlist based on Spotify and Youtube links posted to a specifi
 * /dailyuserlimit reset all
 * /dailyuserlimit reset user {user}
 
-* /shutdown";
-* /reset";
+* /shutdown
+* /reset
 
 
 -----
