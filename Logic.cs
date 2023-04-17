@@ -335,11 +335,11 @@ namespace WasIchHoerePlaylist
             {
                 string tmpLink = "Unknown_Message_Link";
 
+
                 if (messageParam != null)
                 {
                     tmpLink = @"https://discord.com/channels/" + Options.DISCORD_GUILD_ID + "/" + messageParam.Channel.Id + "/" + messageParam.Id;
                 }
-
 
 
                 // List of Real Uris
@@ -349,6 +349,7 @@ namespace WasIchHoerePlaylist
 
                 List<FullTrack> FullTracksInPlaylist = await APIs.MySpotify.GetAllPlaylistFullTracks();
                 List<string> UrisToAdd = new List<string>();
+                List<string> UrisAddable = new List<string>();
                 List<string> UrisNotInLimit = new List<string>();
                 List<string> AlreadyExistingUris = new List<string>();
 
@@ -376,7 +377,7 @@ namespace WasIchHoerePlaylist
                     if (!dontAdd)
                     {
                         // add to Uris To Add
-                        UrisToAdd.Add(MyUrisInput[i]);
+                        UrisAddable.Add(MyUrisInput[i]);
                     }
                     else
                     {
@@ -393,18 +394,51 @@ namespace WasIchHoerePlaylist
                     int NumberOfSongsUserCanAdd = UserSongs.SongsUserCanAdd(UserID);
 
                     // if UrisToAdd has more than the amount of songs we can add
-                    if (UrisToAdd.Count > NumberOfSongsUserCanAdd)
+                    if (UrisAddable.Count > NumberOfSongsUserCanAdd)
                     {
                         // fill UrisNotInLimit and UrisToAdd
-                        UrisNotInLimit = UrisToAdd.GetRange(NumberOfSongsUserCanAdd, UrisToAdd.Count - NumberOfSongsUserCanAdd);
-                        UrisToAdd = UrisToAdd.GetRange(0, NumberOfSongsUserCanAdd);
+
+                        // array with 5 elements, index 0 to 4, 3 songs can be added
+
+                        //                                    3, 5-3 = 2 >>> 3, 2, also index 3 und 4, also das 4 und 5 element
+                        // correct and tested
+                        UrisNotInLimit = UrisAddable.GetRange(NumberOfSongsUserCanAdd, UrisAddable.Count - NumberOfSongsUserCanAdd);
+                        UrisToAdd = UrisAddable.GetRange(0, NumberOfSongsUserCanAdd);
+                    }
+                    else
+                    {
+                        UrisToAdd = UrisAddable;
                     }
 
                     // Add count to UserSong object
                     UserSongs.AddUserSongs(UserID, UrisToAdd.Count);
                 }
+                else
+                {
+                    UrisToAdd = UrisAddable;
+                }
 
                 List<FullTrack> removedSongs = new List<FullTrack>();
+
+
+                //Console.WriteLine();
+                //Console.WriteLine();
+                //Console.WriteLine();
+                //Console.WriteLine("Add Songs:");
+                //Console.WriteLine("MyUrisInput.Count: " + MyUrisInput.Count);
+                //for (int i = 0; i < MyUrisInput.Count; i++)
+                //{
+                //    Console.WriteLine(" --- MyUrisInput[{0}]: {1}", i, MyUrisInput[i]);
+                //}
+                //Console.WriteLine("UserID: " + UserID);
+                //Console.WriteLine("UrisToAdd: " + UrisToAdd.Count);
+                //Console.WriteLine("UrisNotInLimit: " + UrisNotInLimit.Count);
+                //Console.WriteLine("AlreadyExistingUris: " + AlreadyExistingUris.Count);
+                //Console.WriteLine();
+                //Console.WriteLine();
+                //Console.WriteLine();
+
+
                 // Can we continue with our List
                 if (Helper.ListHelper.CanContinueWithList(ref UrisToAdd))
                 {
