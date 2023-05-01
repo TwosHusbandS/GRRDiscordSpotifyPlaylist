@@ -170,11 +170,11 @@ namespace WasIchHoerePlaylist.APIs
         /// <returns></returns>
         private Task MyDiscordClient_MessageUpdated(Cacheable<IMessage, ulong> arg1, SocketMessage arg2, ISocketMessageChannel arg3)
         {
-            _ = Task.Run(async () =>
-            {
-                MessageReceivedAsync(arg2);
-                return Task.CompletedTask;
-            });
+            //_ = Task.Run(async () =>
+            //{
+            //    MessageReceivedAsync(arg2);
+            //    return Task.CompletedTask;
+            //});
             return Task.CompletedTask;
         }
 

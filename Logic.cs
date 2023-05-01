@@ -85,19 +85,25 @@ namespace WasIchHoerePlaylist
         {
             try
             {
-                foreach (var embed in messageParam.Embeds)
+                if (messageParam.Embeds != null)
                 {
-                    string FMRegex = @"^\[(.*)\]\(https:\/\/www.last.fm\/music\/.*\)\nBy \*\*(.*)\*\* \| \*(.*)\*$";
-                    Match MyFMMatch = Regex.Match(embed.Description, FMRegex);
-
-                    if (MyFMMatch.Success)
+                    if (messageParam.Embeds.Count > 0)
                     {
-                        if (MyFMMatch.Groups.Count == 4)
+                        foreach (var embed in messageParam.Embeds)
                         {
-                            //Globals.DebugPrint("Song: '{0}'", MyFMMatch.Groups[1]);
-                            //Globals.DebugPrint("Artist: '{0}'", MyFMMatch.Groups[2]);
-                            //Globals.DebugPrint("Album: '{0}'", MyFMMatch.Groups[3]);
-                            return await APIs.MySpotify.GetUriFromSearch(MyFMMatch.Groups[2] + " " + MyFMMatch.Groups[1]);
+                            string FMRegex = @"^\[(.*)\]\(https:\/\/www.last.fm\/music\/.*\)\nBy \*\*(.*)\*\* \| \*(.*)\*$";
+                            Match MyFMMatch = Regex.Match(embed.Description, FMRegex);
+
+                            if (MyFMMatch.Success)
+                            {
+                                if (MyFMMatch.Groups.Count == 4)
+                                {
+                                    //Globals.DebugPrint("Song: '{0}'", MyFMMatch.Groups[1]);
+                                    //Globals.DebugPrint("Artist: '{0}'", MyFMMatch.Groups[2]);
+                                    //Globals.DebugPrint("Album: '{0}'", MyFMMatch.Groups[3]);
+                                    return await APIs.MySpotify.GetUriFromSearch(MyFMMatch.Groups[2] + " " + MyFMMatch.Groups[1]);
+                                }
+                            }
                         }
                     }
                 }
