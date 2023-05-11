@@ -147,8 +147,15 @@ namespace WasIchHoerePlaylist.APIs
             // Return all playableItems of a playlist, order by datetime when it was added.First item was added the longest ago.
             try
             {
+                
                 Paging<PlaylistTrack<IPlayableItem>> MyTracks = await MySpotifyClient.Playlists.GetItems(PlaylistID);
-                return (MyTracks.Items.OrderBy(x => x.AddedAt).ToList());
+
+                // NON PAGINATED
+                // return (MyTracks.Items.OrderBy(x => x.AddedAt).ToList());
+
+                // PAGINATED
+                IList<PlaylistTrack<IPlayableItem>> MyPaginatedTracks = await MySpotifyClient.PaginateAll(MyTracks);
+                return (MyPaginatedTracks.OrderBy(x => x.AddedAt).ToList());
             }
             catch (Exception ex)
             {
@@ -192,6 +199,8 @@ namespace WasIchHoerePlaylist.APIs
                 Helper.Logger.Log(ex);
             }
 
+
+            Console.WriteLine("Console Debug: Returning FullTracks.Count " + FullTracks.Count); 
             return FullTracks;
         }
 
